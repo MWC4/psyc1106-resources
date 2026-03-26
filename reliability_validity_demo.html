@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reliability &amp; Validity — PSYC1106</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 { font-size: 1.7rem; color: #1a1a1a; margin-bottom: 4px; text-align: center; }
+  .subtitle { font-size: 1rem; color: #555; margin-bottom: 28px; text-align: center; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.13); }
+  .card.active { outline: 3px solid #E8A000; }
+
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    color: #1a1a1a;
+  }
+
+  .badges {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .badge.reliable   { background: #d4edda; color: #155724; }
+  .badge.unreliable { background: #f8d7da; color: #721c24; }
+  .badge.valid      { background: #cce5ff; color: #004085; }
+  .badge.invalid    { background: #fff3cd; color: #856404; }
+
+  canvas { display: block; }
+
+  .explanation {
+    font-size: 0.88rem;
+    color: #444;
+    text-align: center;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+
+  /* Detail panel */
+  .detail {
+    width: 100%;
+    max-width: 860px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-top: 20px;
+    display: none;
+  }
+
+  .detail.visible { display: block; }
+
+  .detail h2 { font-size: 1.2rem; color: #1a1a1a; margin-bottom: 10px; }
+
+  .detail-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .detail-col h3 { font-size: 0.85rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .detail-col p  { font-size: 0.93rem; color: #333; line-height: 1.6; }
+
+  .analogy {
+    margin-top: 14px;
+    background: #fffbef;
+    border-left: 3px solid #E8A000;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.88rem;
+    color: #555;
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .detail-body { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Reliability &amp; Validity</h1>
+<p class="subtitle">Click any panel to explore — each shows shots fired at a target (your measurement attempts)</p>
+
+<div class="grid" id="grid"></div>
+
+<div class="detail" id="detail">
+  <h2 id="detail-title"></h2>
+  <div class="detail-body">
+    <div class="detail-col">
+      <h3>What's happening</h3>
+      <p id="detail-what"></p>
+    </div>
+    <div class="detail-col">
+      <h3>Research example</h3>
+      <p id="detail-example"></p>
+    </div>
+  </div>
+  <div class="analogy" id="detail-analogy"></div>
+</div>
+
+<script>
+const panels = [
+  {
+    id: 'rr_vv',
+    title: '✅ Reliable & Valid',
+    reliable: true, valid: true,
+    description: 'Consistent AND hitting the right thing. The ideal measure.',
+    what: 'Shots are clustered tightly (reliable) and centred on the bullseye (valid). Every measurement gives a similar result, and those results actually reflect the construct you care about.',
+    example: 'A depression scale that gives very similar scores for the same person across two sessions (reliable), and those scores genuinely reflect depression severity rather than, say, fatigue or mood in general (valid).',
+    analogy: '🎯 Like a skilled archer: consistent technique, hitting the right target every time.'
+  },
+  {
+    id: 'rr_nv',
+    title: '❌ Reliable but NOT Valid',
+    reliable: true, valid: false,
+    description: 'Consistent, but measuring the wrong thing.',
+    what: 'Shots are clustered tightly (reliable) but off to one side — consistently missing the bullseye. The measure gives stable results, but those results don\'t capture what you meant to measure.',
+    example: 'Measuring "anxiety" by asking how many cups of coffee someone drinks. You might get very consistent responses, but coffee consumption is not the same as anxiety — you\'re reliably measuring the wrong thing.',
+    analogy: '🎯 Like an archer whose bow is consistently misaligned: every shot lands in the same spot — but it\'s the wrong spot.'
+  },
+  {
+    id: 'nr_vv',
+    title: '❌ NOT Reliable but Valid (on average)',
+    reliable: false, valid: true,
+    description: 'Scattered, but centred on the right thing.',
+    what: 'Shots are spread out all over (unreliable) but centre around the bullseye on average. Individual measurements are all over the place — you can\'t trust any one score — even though the average might be close.',
+    example: 'A single casual interview question about anxiety. One researcher\'s assessment might go well, the next poorly, the next differently again. Across many attempts you might average near the truth, but no individual score is trustworthy.',
+    analogy: '🎯 Like a novice archer with a good bow: no consistent technique — sometimes close, sometimes not — but nothing you can rely on.'
+  },
+  {
+    id: 'nr_nv',
+    title: '❌ NOT Reliable & NOT Valid',
+    reliable: false, valid: false,
+    description: 'Scattered AND off target. The worst case.',
+    what: 'Shots are spread all over the target AND centred away from the bullseye. The measure gives inconsistent results and those results don\'t reflect the construct you intended to measure. There is no useful information here.',
+    example: 'Measuring "depression" by asking participants to rate how cloudy the sky looks today. The responses would be random and have nothing to do with depression at all.',
+    analogy: '🎯 Like firing blindfolded in the wrong direction: neither consistent nor aimed at the right thing.'
+  }
+];
+
+function drawTarget(canvasId, reliable, valid) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const rings = [
+    { r: 80, color: '#e74c3c' },
+    { r: 62, color: '#fff' },
+    { r: 44, color: '#e74c3c' },
+    { r: 26, color: '#fff' },
+    { r: 10, color: '#e74c3c' }
+  ];
+
+  // Draw target rings
+  rings.forEach(ring => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+    ctx.fillStyle = ring.color;
+    ctx.fill();
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Centre of shot cluster
+  const clusterX = valid ? cx : cx + 42;
+  const clusterY = valid ? cy : cy - 38;
+
+  // Spread of shots
+  const spread = reliable ? 10 : 42;
+
+  // Deterministic shot positions using seeded variation
+  const shots = [
+    [0.3, 0.7], [-0.8, 0.2], [0.6, -0.5], [-0.4, -0.9], [0.9, 0.4],
+    [-0.2, 0.8], [0.5, 0.3], [-0.7, -0.3], [0.1, -0.6], [-0.5, 0.5]
+  ];
+
+  shots.forEach(([dx, dy]) => {
+    const x = clusterX + dx * spread;
+    const y = clusterY + dy * spread;
+    ctx.beginPath();
+    ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+}
+
+let activeCard = null;
+
+function showDetail(id) {
+  const p = panels.find(x => x.id === id);
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  document.getElementById('card_' + id).classList.add('active');
+  document.getElementById('detail-title').textContent = p.title;
+  document.getElementById('detail-what').textContent = p.what;
+  document.getElementById('detail-example').textContent = p.example;
+  document.getElementById('detail-analogy').textContent = p.analogy;
+  const detail = document.getElementById('detail');
+  detail.classList.add('visible');
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Build grid
+const grid = document.getElementById('grid');
+panels.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.id = 'card_' + p.id;
+  card.onclick = () => showDetail(p.id);
+
+  const relBadge = p.reliable
+    ? '<span class="badge reliable">Reliable ✓</span>'
+    : '<span class="badge unreliable">Not Reliable ✗</span>';
+  const valBadge = p.valid
+    ? '<span class="badge valid">Valid ✓</span>'
+    : '<span class="badge invalid">Not Valid ✗</span>';
+
+  card.innerHTML = `
+    <div class="card-title">${p.title}</div>
+    <div class="badges">${relBadge}${valBadge}</div>
+    <canvas id="canvas_${p.id}" width="200" height="200"></canvas>
+    <div class="explanation">${p.description}</div>
+  `;
+  grid.appendChild(card);
+});
+
+// Draw all targets after DOM is ready
+panels.forEach(p => {
+  drawTarget('canvas_' + p.id, p.reliable, p.valid);
+});
+
+// Show first panel detail by default
+showDetail('rr_vv');
+</script>
+</body>
+</html>

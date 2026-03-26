@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Types of Reliability — PSYC1106</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+  }
+
+  h1 { font-size: 1.7rem; color: #1a1a1a; margin-bottom: 4px; text-align: center; }
+  .subtitle { font-size: 1rem; color: #555; margin-bottom: 28px; text-align: center; max-width: 640px; }
+
+  /* ── Top row: definition cards ── */
+  .def-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+    margin-bottom: 28px;
+  }
+
+  .def-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border-top: 5px solid var(--col);
+  }
+
+  .def-card h2 { font-size: 1.05rem; color: var(--col); margin-bottom: 6px; }
+  .def-card p  { font-size: 0.88rem; color: #444; line-height: 1.55; }
+
+  /* ── Matrix ── */
+  .matrix-wrap {
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .matrix-label-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding-left: 0;
+  }
+
+  .axis-label {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    padding: 6px 0;
+  }
+
+  .axis-label.left-axis {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    grid-row: span 2;
+    font-size: 0.75rem;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+  }
+
+  .matrix-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: stretch;
+  }
+
+  .row-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    padding-right: 8px;
+    text-align: right;
+  }
+
+  .row-label .rl-main { font-size: 0.95rem; font-weight: 700; color: #333; }
+  .row-label .rl-sub  { font-size: 0.78rem; color: #888; margin-top: 2px; }
+
+  .cell {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 2px solid transparent;
+  }
+
+  .cell:hover { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(0,0,0,0.12); }
+  .cell.selected { border-color: #E8A000; }
+
+  .cell-construct {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .cell-example {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.4;
+  }
+
+  .rel-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .rel-tag {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .tag-tr  { background: #d4edda; color: #155724; }
+  .tag-ir  { background: #cce5ff; color: #004085; }
+  .tag-no  { background: #f8f8f8; color: #aaa; border: 1px dashed #ddd; }
+
+  /* ── Detail panel ── */
+  .detail {
+    width: 100%;
+    max-width: 860px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-top: 20px;
+    display: none;
+  }
+
+  .detail.visible { display: block; }
+
+  .detail h2 { font-size: 1.1rem; color: #1a1a1a; margin-bottom: 14px; }
+
+  .detail-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .detail-block h3 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+    margin-bottom: 6px;
+  }
+
+  .detail-block p { font-size: 0.9rem; color: #333; line-height: 1.6; }
+
+  .check-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  .check-item .icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .note {
+    margin-top: 14px;
+    background: #fffbef;
+    border-left: 3px solid #E8A000;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.87rem;
+    color: #555;
+    font-style: italic;
+  }
+
+  /* ── Axis label headers ── */
+  .col-header {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #555;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+
+  .col-header .ch-top { font-size: 1rem; }
+  .col-header .ch-sub { font-size: 0.72rem; color: #999; font-weight: 400; margin-top: 2px; }
+
+  @media (max-width: 650px) {
+    .def-row { grid-template-columns: 1fr; }
+    .matrix-label-row { grid-template-columns: 90px 1fr 1fr; }
+    .matrix-row { grid-template-columns: 90px 1fr 1fr; }
+    .detail-cols { grid-template-columns: 1fr; }
+    .axis-label.left-axis { min-height: 160px; font-size: 0.65rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Types of Reliability</h1>
+<p class="subtitle">When do we need test-retest reliability, interrater reliability, both, or neither?<br>Click any cell to find out.</p>
+
+<!-- Definition cards -->
+<div class="def-row">
+  <div class="def-card" style="--col: #27ae60">
+    <h2>Test-Retest Reliability</h2>
+    <p>Does the measure give the <strong>same score at two different times</strong>? Needed when the construct being measured is <em>stable</em> — i.e. not expected to change between measurements. Assessed by correlating scores from Time 1 and Time 2.</p>
+  </div>
+  <div class="def-card" style="--col: #2980b9">
+    <h2>Interrater Reliability</h2>
+    <p>Does the measure give the <strong>same score regardless of who is doing the rating</strong>? Needed when the measurement involves an <em>external observer</em> making a judgment. Assessed by correlating scores from Rater 1 and Rater 2.</p>
+  </div>
+</div>
+
+<!-- Matrix -->
+<div class="matrix-wrap">
+
+  <!-- Column headers row -->
+  <div class="matrix-label-row">
+    <div></div>
+    <div class="col-header">
+      <div class="ch-top">🔭 External / Observed</div>
+      <div class="ch-sub">A rater observes or judges the participant</div>
+    </div>
+    <div class="col-header">
+      <div class="ch-top">💬 Internal / Self-Report</div>
+      <div class="ch-sub">The participant reports their own experience</div>
+    </div>
+  </div>
+
+  <!-- Stable row -->
+  <div class="matrix-row">
+    <div class="row-label">
+      <div class="rl-main">🧱 Stable</div>
+      <div class="rl-sub">Trait construct<br>Not expected to change</div>
+    </div>
+    <div class="cell" id="cell_se" onclick="showDetail('se')">
+      <div class="cell-construct">Stable + External</div>
+      <div class="cell-example">e.g. Behavioural observation of a child's attachment style</div>
+      <div class="rel-tags">
+        <span class="rel-tag tag-tr">✓ Test-Retest</span>
+        <span class="rel-tag tag-ir">✓ Interrater</span>
+      </div>
+    </div>
+    <div class="cell" id="cell_si" onclick="showDetail('si')">
+      <div class="cell-construct">Stable + Self-Report</div>
+      <div class="cell-example">e.g. Personality questionnaire (e.g. Big Five)</div>
+      <div class="rel-tags">
+        <span class="rel-tag tag-tr">✓ Test-Retest</span>
+        <span class="rel-tag tag-no">✗ Interrater (N/A)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unstable row -->
+  <div class="matrix-row">
+    <div class="row-label">
+      <div class="rl-main">🌊 Unstable</div>
+      <div class="rl-sub">State construct<br>Expected to change</div>
+    </div>
+    <div class="cell" id="cell_ue" onclick="showDetail('ue')">
+      <div class="cell-construct">Unstable + External</div>
+      <div class="cell-example">e.g. Behavioural observation of current anxiety (fidgeting, avoidance)</div>
+      <div class="rel-tags">
+        <span class="rel-tag tag-no">✗ Test-Retest (N/A)</span>
+        <span class="rel-tag tag-ir">✓ Interrater</span>
+      </div>
+    </div>
+    <div class="cell" id="cell_ui" onclick="showDetail('ui')">
+      <div class="cell-construct">Unstable + Self-Report</div>
+      <div class="cell-example">e.g. "How anxious do you feel right now?" (state anxiety scale)</div>
+      <div class="rel-tags">
+        <span class="rel-tag tag-no">✗ Test-Retest (N/A)</span>
+        <span class="rel-tag tag-no">✗ Interrater (N/A)</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail panel -->
+<div class="detail" id="detail">
+  <h2 id="d-title"></h2>
+  <div class="detail-cols">
+    <div class="detail-block">
+      <h3>Why these reliability types?</h3>
+      <div class="check-row" id="d-checks"></div>
+    </div>
+    <div class="detail-block">
+      <h3>Research example</h3>
+      <p id="d-example"></p>
+    </div>
+  </div>
+  <div class="note" id="d-note"></div>
+</div>
+
+<script>
+const cells = {
+  se: {
+    title: '🧱🔭 Stable construct, External rating — needs BOTH',
+    checks: [
+      { icon: '✅', text: '<strong>Test-retest needed:</strong> The construct is stable, so the same person should score similarly at two different times. If scores jump around, something is wrong with the measure.' },
+      { icon: '✅', text: '<strong>Interrater needed:</strong> The rating depends on an observer\'s judgment, so two different observers should reach the same conclusion when watching the same person.' },
+    ],
+    example: 'A researcher observes children in a "Strange Situation" task and codes their attachment style (secure, anxious, avoidant). Because attachment style is a stable trait, scores should be consistent over time (test-retest). And because the coding requires a human judgment, two coders should agree on what they saw (interrater).',
+    note: '💡 This is the most demanding case — you need to demonstrate consistency over time AND consistency across raters. Both checks are necessary before you can trust the measure.'
+  },
+  si: {
+    title: '🧱💬 Stable construct, Self-Report — needs TEST-RETEST only',
+    checks: [
+      { icon: '✅', text: '<strong>Test-retest needed:</strong> The construct is stable, so scores should be similar across time. If someone\'s extraversion score changes dramatically week to week, the measure is unreliable.' },
+      { icon: '❌', text: '<strong>Interrater not applicable:</strong> Only one person can know their own internal experience. There is no "second rater" — each person is the sole reporter of their own personality.' },
+    ],
+    example: 'A participant completes the Big Five personality questionnaire, then completes it again 4 weeks later. Because personality is a stable trait, we expect similar scores both times — high test-retest reliability. No interrater check is needed because only the participant can rate themselves.',
+    note: '💡 Self-report removes the interrater question entirely. The only consistency check that makes sense here is over time.'
+  },
+  ue: {
+    title: '🌊🔭 Unstable construct, External rating — needs INTERRATER only',
+    checks: [
+      { icon: '❌', text: '<strong>Test-retest not applicable:</strong> The construct is a state — it\'s expected to change over time. A person\'s anxiety level before an exam is genuinely different from their anxiety level a week later. Different scores don\'t mean a bad measure — they mean the construct changed.' },
+      { icon: '✅', text: '<strong>Interrater needed:</strong> The rating still involves an observer\'s judgment. Two clinicians observing the same patient right now should agree on what level of anxiety they\'re seeing.' },
+    ],
+    example: 'Two clinicians independently observe a patient\'s behaviour during a therapy session and rate their current anxiety level (e.g., using the Hamilton Anxiety Rating Scale). Because anxiety is a state, there is no point comparing scores from two different sessions — but the two clinicians watching the same session right now should agree.',
+    note: '💡 The key insight: a low test-retest correlation for a state measure is EXPECTED and doesn\'t tell us anything bad about the measure. Trying to assess test-retest here would be a mistake.'
+  },
+  ui: {
+    title: '🌊💬 Unstable construct, Self-Report — neither applies',
+    checks: [
+      { icon: '❌', text: '<strong>Test-retest not applicable:</strong> The construct is a state and will genuinely change over time. Different scores at two time points are expected — they reflect real change, not measurement error.' },
+      { icon: '❌', text: '<strong>Interrater not applicable:</strong> Only the person themselves can report their own inner experience (e.g., "how I feel right now"). Another rater cannot access that information.' },
+    ],
+    example: '"On a scale of 1–10, how anxious do you feel right now?" — asked before and after an exam. Both test-retest and interrater are meaningless here: the score will (and should) change over time, and no one else can rate what you\'re feeling internally.',
+    note: '💡 This doesn\'t mean the measure is bad! It just means traditional reliability checks don\'t apply. Other quality checks (like construct validity) are still important.'
+  }
+};
+
+function showDetail(id) {
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+  document.getElementById('cell_' + id).classList.add('selected');
+
+  const c = cells[id];
+  document.getElementById('d-title').textContent = c.title;
+  document.getElementById('d-checks').innerHTML = c.checks.map(ch =>
+    `<div class="check-item"><span class="icon">${ch.icon}</span><span>${ch.text}</span></div>`
+  ).join('');
+  document.getElementById('d-example').textContent = c.example;
+  document.getElementById('d-note').textContent = c.note;
+
+  const detail = document.getElementById('detail');
+  detail.classList.add('visible');
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Show first cell by default
+showDetail('se');
+</script>
+</body>
+</html>

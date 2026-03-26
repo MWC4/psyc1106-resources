@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scales of Measurement — PSYC1106</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 {
+    font-size: 1.7rem;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .construct-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .construct-btn {
+    padding: 10px 22px;
+    border: 2px solid #ccc;
+    border-radius: 24px;
+    background: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    color: #444;
+  }
+
+  .construct-btn.active {
+    background: #E8A000;
+    border-color: #E8A000;
+    color: #fff;
+  }
+
+  .scales-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  .scale-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .scale-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  }
+
+  .scale-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .scale-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .nominal .scale-badge  { background: #e74c3c; }
+  .ordinal .scale-badge  { background: #e67e22; }
+  .interval .scale-badge { background: #2980b9; }
+  .ratio .scale-badge    { background: #27ae60; }
+
+  .scale-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .scale-type {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 500;
+    margin-top: -2px;
+  }
+
+  .example-box {
+    background: #f8f8f8;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    color: #333;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .example-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+    margin-bottom: 2px;
+  }
+
+  .example-value {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #222;
+  }
+
+  .can-do {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .can-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+  }
+
+  .op-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #333;
+  }
+
+  .op-row .tick  { color: #27ae60; font-size: 1rem; font-weight: 800; }
+  .op-row .cross { color: #e74c3c; font-size: 1rem; font-weight: 800; }
+
+  .key-point {
+    font-size: 0.8rem;
+    color: #555;
+    background: #fffbef;
+    border-left: 3px solid #E8A000;
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+  }
+
+  @media (max-width: 750px) {
+    .scales-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 450px) {
+    .scales-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Scales of Measurement</h1>
+<p class="subtitle">Select a construct to see how it looks at each level of measurement</p>
+
+<div class="construct-selector">
+  <button class="construct-btn active" onclick="setConstruct('coffee')">☕ Coffee consumption</button>
+  <button class="construct-btn" onclick="setConstruct('pain')">🤕 Pain level</button>
+  <button class="construct-btn" onclick="setConstruct('temp')">🌡️ Temperature</button>
+  <button class="construct-btn" onclick="setConstruct('anxiety')">😰 Anxiety</button>
+</div>
+
+<div class="scales-grid" id="grid"></div>
+
+<script>
+const constructs = {
+  coffee: {
+    label: "Coffee consumption",
+    scales: {
+      nominal:  { example: "Type of coffee\ne.g. Espresso / Latte / Cappuccino / None", operations: [true, false, false, false, false], point: "Categories only — no order implied. You can't say espresso is 'more coffee' than latte." },
+      ordinal:  { example: "How much coffee?\ne.g. None / A little / Moderate / A lot", operations: [true, true, false, false, false], point: "We know the order but gaps between steps are unequal — 'a little' to 'moderate' isn't necessarily the same jump as 'moderate' to 'a lot'." },
+      interval: { example: "Likert scale: 'How much do you enjoy coffee?'\n1 = Not at all … 7 = Extremely", operations: [true, true, true, false, false], point: "Equal gaps between points, but no true zero — a score of 0 doesn't mean 'zero enjoyment'." },
+      ratio:    { example: "Number of cups per day\ne.g. 0, 1, 2, 3, 4…", operations: [true, true, true, true, true], point: "True zero exists (0 cups = no coffee), so ratios are meaningful: 4 cups is genuinely twice as much as 2." }
+    }
+  },
+  pain: {
+    label: "Pain level",
+    scales: {
+      nominal:  { example: "Type of pain\ne.g. Sharp / Dull / Burning / Aching", operations: [true, false, false, false, false], point: "Just labels — we can't rank 'sharp' as more or less pain than 'burning'." },
+      ordinal:  { example: "Pain category\ne.g. None / Mild / Moderate / Severe", operations: [true, true, false, false, false], point: "Clear ordering, but the distance between 'mild' and 'moderate' may not equal the distance between 'moderate' and 'severe'." },
+      interval: { example: "Numeric rating scale\n0 = No pain … 10 = Worst imaginable", operations: [true, true, true, false, false], point: "Equal spacing assumed, but whether '0' is a true absence of all pain sensation is debatable." },
+      ratio:    { example: "Pain threshold (pressure in kPa)\ne.g. 0 kPa, 50 kPa, 120 kPa…", operations: [true, true, true, true, true], point: "Objective physical measurement with a true zero — 100 kPa is genuinely twice the threshold of 50 kPa." }
+    }
+  },
+  temp: {
+    label: "Temperature",
+    scales: {
+      nominal:  { example: "Season\ne.g. Summer / Autumn / Winter / Spring", operations: [true, false, false, false, false], point: "Categories with no meaningful order (Summer isn't 'more' than Winter)." },
+      ordinal:  { example: "Perceived warmth\ne.g. Very cold / Cold / Warm / Hot", operations: [true, true, false, false, false], point: "Ordered, but differences between categories aren't equal — 'warm' to 'hot' could mean very different things to different people." },
+      interval: { example: "Temperature in °C\ne.g. 0°C, 10°C, 20°C, 30°C", operations: [true, true, true, false, false], point: "Equal gaps (10° is always 10°), but 0°C is NOT the absence of heat — it's just a reference point. 20°C is NOT twice as hot as 10°C." },
+      ratio:    { example: "Temperature in Kelvin\ne.g. 0K, 100K, 273K, 293K", operations: [true, true, true, true, true], point: "0 Kelvin (absolute zero) is a true absence of heat. Ratios are meaningful: 300K is twice as hot as 150K." }
+    }
+  },
+  anxiety: {
+    label: "Anxiety",
+    scales: {
+      nominal:  { example: "Anxiety disorder diagnosis\ne.g. GAD / Panic disorder / Social anxiety / None", operations: [true, false, false, false, false], point: "Diagnostic categories only — one diagnosis isn't 'more anxiety' than another." },
+      ordinal:  { example: "Overall anxiety category\ne.g. Minimal / Mild / Moderate / Severe", operations: [true, true, false, false, false], point: "We know the ranking but can't assume equal gaps — the difference between 'mild' and 'moderate' may not equal 'moderate' to 'severe'." },
+      interval: { example: "GAD-7 questionnaire total score\n0 (minimal) … 21 (severe)", operations: [true, true, true, false, false], point: "Equal-interval scoring assumed; allows averaging. But a score of 0 may not mean 'zero anxiety' — it means minimal symptoms on this scale." },
+      ratio:    { example: "Physiological measure: cortisol (nmol/L)\ne.g. 0, 5, 10, 20 nmol/L", operations: [true, true, true, true, true], point: "True zero is possible. 20 nmol/L is genuinely twice the cortisol of 10 nmol/L — though cortisol ≠ anxiety perfectly." }
+    }
+  }
+};
+
+const ops = [
+  { label: "Categorise", symbol: "=" },
+  { label: "Rank / order", symbol: ">" },
+  { label: "Add & subtract", symbol: "±" },
+  { label: "Multiply & divide", symbol: "×" },
+  { label: "Meaningful zero", symbol: "0" }
+];
+
+const scaleOrder = ['nominal', 'ordinal', 'interval', 'ratio'];
+const scaleTypes = { nominal: 'Categorical', ordinal: 'Categorical', interval: 'Continuous', ratio: 'Continuous' };
+
+let currentConstruct = 'coffee';
+
+function setConstruct(key) {
+  currentConstruct = key;
+  document.querySelectorAll('.construct-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  render();
+}
+
+function render() {
+  const data = constructs[currentConstruct];
+  const grid = document.getElementById('grid');
+  grid.innerHTML = scaleOrder.map(scale => {
+    const s = data.scales[scale];
+    const opsHtml = ops.map((op, i) => `
+      <div class="op-row">
+        <span class="${s.operations[i] ? 'tick' : 'cross'}">${s.operations[i] ? '✓' : '✗'}</span>
+        <span>${op.label} <span style="color:#aaa;font-size:0.75rem">(${op.symbol})</span></span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="scale-card ${scale}">
+        <div class="scale-header">
+          <div class="scale-badge">${scale.charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="scale-name">${scale.charAt(0).toUpperCase() + scale.slice(1)}</div>
+            <div class="scale-type">${scaleTypes[scale]}</div>
+          </div>
+        </div>
+        <div class="example-box">
+          <div class="example-label">Example</div>
+          <div class="example-value">${s.example.replace(/\n/g, '<br>')}</div>
+        </div>
+        <div class="can-do">
+          <div class="can-label">What you can do</div>
+          ${opsHtml}
+        </div>
+        <div class="key-point">${s.point}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>

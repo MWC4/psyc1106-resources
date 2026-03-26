@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construct Validity Quiz — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --text: #e8eaf2;
+    --muted: #7b82a3;
+    --teal: #00c9b1;
+    --teal-dim: rgba(0,201,177,0.12);
+    --green: #2ecc87;
+    --green-dim: rgba(46,204,135,0.12);
+    --red: #e8526a;
+    --red-dim: rgba(232,82,106,0.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header { text-align: center; margin-bottom: 24px; max-width: 680px; }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .header p { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+
+  /* Definition banner */
+  .defn {
+    width: 100%;
+    max-width: 760px;
+    background: var(--teal-dim);
+    border: 1px solid var(--teal);
+    border-radius: 14px;
+    padding: 16px 22px;
+    margin-bottom: 28px;
+    font-size: 0.9rem;
+    color: #a0f0e8;
+    line-height: 1.6;
+  }
+
+  .defn strong { color: var(--teal); }
+
+  /* Progress */
+  .progress-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px; width: 100%; max-width: 760px;
+  }
+
+  .progress-bar { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.5s ease; }
+  .progress-label { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+
+  /* Card */
+  .card {
+    width: 100%; max-width: 760px;
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .card-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); }
+
+  .q-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+
+  .q-num {
+    background: var(--teal-dim); color: var(--teal);
+    font-size: 0.75rem; font-weight: 700; padding: 4px 10px;
+    border-radius: 20px; letter-spacing: 0.05em;
+  }
+
+  .q-context {
+    font-size: 0.75rem; color: var(--muted); font-weight: 500;
+    background: var(--surface2); padding: 4px 10px; border-radius: 20px;
+  }
+
+  .scenario-box {
+    background: var(--surface2); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 16px;
+    border-left: 4px solid var(--teal);
+  }
+
+  .scenario-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 8px; }
+  .scenario-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .scenario-text { font-size: 0.9rem; color: #aab0cc; line-height: 1.6; }
+
+  .q-ask { font-size: 0.9rem; color: var(--teal); font-weight: 600; }
+
+  /* Options */
+  .options { padding: 20px 28px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+  .opt {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 18px;
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: 12px; cursor: pointer; transition: all 0.18s;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; line-height: 1.45; text-align: left;
+  }
+
+  .opt:hover:not([disabled]) { border-color: var(--teal); background: var(--teal-dim); }
+  .opt[disabled] { cursor: default; }
+  .opt.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .opt.wrong   { border-color: var(--red);   background: var(--red-dim);   color: var(--red); opacity: 0.7; }
+  .opt.missed  { border-color: var(--green); background: var(--green-dim); color: var(--green); opacity: 0.6; }
+
+  .opt-letter {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    transition: background 0.18s;
+  }
+
+  .opt.correct .opt-letter { background: var(--green); color: #000; }
+  .opt.wrong   .opt-letter { background: var(--red);   color: #fff; }
+  .opt.missed  .opt-letter { background: var(--green); color: #000; }
+
+  /* Validity verdict chip */
+  .verdict-chip {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .verdict-high   { background: var(--green-dim); color: var(--green); }
+  .verdict-medium { background: var(--amber-dim); color: var(--amber); }
+  .verdict-low    { background: var(--red-dim);   color: var(--red); }
+
+  /* Feedback */
+  .feedback {
+    margin: 0 28px 24px;
+    padding: 16px 18px;
+    border-radius: 12px; font-size: 0.9rem; line-height: 1.65; display: none;
+  }
+
+  .feedback.correct-fb { background: var(--green-dim); border: 1px solid var(--green); color: #a8f5d3; }
+  .feedback.wrong-fb   { background: var(--red-dim);   border: 1px solid var(--red);   color: #f5b8c2; }
+  .fb-title { font-weight: 700; margin-bottom: 8px; font-size: 0.95rem; }
+
+  .nav { width: 100%; max-width: 760px; display: flex; justify-content: flex-end; }
+
+  .btn-next {
+    padding: 12px 28px; background: var(--teal); color: #000;
+    border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; display: none; transition: opacity 0.2s;
+  }
+
+  .btn-next:hover { opacity: 0.85; }
+
+  .score-screen {
+    width: 100%; max-width: 760px;
+    background: var(--surface);
+    border-radius: 20px; border: 1px solid var(--border);
+    padding: 48px 36px; text-align: center; display: none;
+  }
+
+  .score-screen h2 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 8px; }
+  .score-big { font-size: 4rem; font-weight: 700; color: var(--teal); margin: 20px 0; line-height: 1; }
+  .score-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; }
+
+  .btn-restart {
+    padding: 12px 32px; background: var(--teal); color: #000;
+    border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Construct Validity</h1>
+  <p>Does the measure actually capture the construct it claims to measure?</p>
+</div>
+
+<div class="defn">
+  <strong>Construct validity</strong> asks: does this variable really measure the underlying construct of interest? A measure can be perfectly reliable (consistent) but still have poor construct validity — if it's consistently measuring the <em>wrong thing</em>. For each scenario, decide whether the measure has high, questionable, or low construct validity.
+</div>
+
+<div class="progress-row">
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="progress-label" id="prog-label">Question 1 of 5</div>
+</div>
+
+<div class="card" id="q-card">
+  <div class="card-header">
+    <div class="q-meta">
+      <span class="q-num" id="q-num">Q1</span>
+      <span class="q-context" id="q-context"></span>
+    </div>
+    <div class="scenario-box">
+      <div class="scenario-label">Scenario</div>
+      <div class="scenario-title" id="s-title"></div>
+      <div class="scenario-text" id="s-text"></div>
+    </div>
+    <div class="q-ask">How would you rate the construct validity of this measure?</div>
+  </div>
+  <div class="options" id="options"></div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<div class="nav">
+  <button class="btn-next" id="btn-next" onclick="nextQ()">Next →</button>
+</div>
+
+<div class="score-screen" id="score-screen">
+  <h2>Session Complete</h2>
+  <div class="score-big" id="score-big"></div>
+  <div class="score-sub" id="score-sub"></div>
+  <button class="btn-restart" onclick="restart()">Try Again</button>
+</div>
+
+<script>
+const questions = [
+  {
+    context: "Clinical psychology",
+    title: "Measuring depression with the PHQ-9",
+    text: "A researcher uses the PHQ-9 to measure depression severity. The PHQ-9 was developed directly from DSM criteria for Major Depressive Disorder, asks about the 9 core depression symptoms (low mood, anhedonia, sleep changes, fatigue, etc.), and has been validated against structured clinical interviews in thousands of studies internationally, including in Australian primary care settings.",
+    options: [
+      "High construct validity — the measure directly reflects the construct it claims to assess",
+      "Questionable construct validity — there are some concerns about what it actually captures",
+      "Low construct validity — it is measuring something quite different from depression"
+    ],
+    correct: 0,
+    verdict: "high",
+    reason: "This is a textbook example of <strong>high construct validity</strong>. The PHQ-9 items were derived directly from the diagnostic criteria for depression, meaning there is a tight conceptual link between the construct (depression) and what is being measured. The extensive validation research — including comparisons against structured clinical interviews — further supports that it captures what it claims to. Strong construct validity doesn't mean perfect, but this is about as solid as it gets in psychological measurement."
+  },
+  {
+    context: "Organisational psychology",
+    title: "Measuring 'job performance' by counting emails sent per day",
+    text: "An HR manager wants to measure employee job performance. They decide to use the number of emails sent per day as an objective, easy-to-collect metric. This is proposed as the primary measure of performance across all departments.",
+    options: [
+      "High construct validity — it's an objective, consistent count",
+      "Questionable construct validity — it captures some aspect of work activity but not performance broadly",
+      "Low construct validity — sending emails has little meaningful relationship to job performance"
+    ],
+    correct: 2,
+    verdict: "low",
+    reason: "This is <strong>low construct validity</strong>. Job performance is a broad construct involving quality of work, decision-making, collaboration, outcomes achieved, and much more. Email count measures only one very narrow (and easily gameable) behaviour. A high email count might reflect poor communication skills just as easily as high productivity. The measure is reliable — you'd get the same count every day — but it's consistently measuring the wrong thing. <em>Reliability ≠ validity.</em>"
+  },
+  {
+    context: "Health / sport psychology",
+    title: "Measuring 'anxiety' with heart rate",
+    text: "A sport psychologist wants to measure an athlete's pre-competition anxiety. They use a heart rate monitor: a resting heart rate above 90 bpm before competition is used as the indicator of anxiety.",
+    options: [
+      "High construct validity — heart rate directly reflects anxiety",
+      "Questionable construct validity — heart rate is related to anxiety but also captures other things",
+      "Low construct validity — heart rate has no relationship to anxiety"
+    ],
+    correct: 1,
+    verdict: "medium",
+    reason: "This is <strong>questionable construct validity</strong>. Heart rate does increase with anxiety (part of the sympathetic 'fight or flight' response), so there's a real relationship. However, elevated heart rate also reflects physical exertion, caffeine, heat, excitement, and many other things unrelated to anxiety. It captures the physiological arousal component of anxiety but not the cognitive or emotional components. This is a partial measure at best — better than nothing, but the match between measure and construct is imperfect."
+  },
+  {
+    context: "Developmental / educational psychology",
+    title: "Measuring 'intelligence' with a vocabulary test",
+    text: "A school psychologist uses a standardised vocabulary test — knowing the meaning of 50 English words — as the sole measure of a primary school student's intelligence, including for students whose first language is not English.",
+    options: [
+      "High construct validity — vocabulary is a well-established component of intelligence",
+      "Questionable construct validity — vocabulary reflects some aspects of intelligence but not others, and performance is affected by non-cognitive factors",
+      "Low construct validity — vocabulary has nothing to do with intelligence"
+    ],
+    correct: 1,
+    verdict: "medium",
+    reason: "This is <strong>questionable construct validity</strong> — and a really important real-world issue. Verbal ability is genuinely part of many intelligence models (e.g., crystallised intelligence in CHC theory), so it's not irrelevant. However, 'intelligence' is a broad construct involving reasoning, processing speed, working memory, and more — and a single vocabulary test misses most of it. Critically, for students whose first language isn't English, the test is measuring language exposure as much as cognitive ability. A measure can be a valid indicator for one group but invalid for another."
+  },
+  {
+    context: "Forensic / correctional psychology",
+    title: "Measuring recidivism risk with the PCL-R",
+    text: "A forensic psychologist assesses an offender's risk of violent reoffending using the Psychopathy Checklist–Revised (PCL-R), which rates 20 items related to affective, interpersonal, and behavioural features. The team then uses the total score as their <em>only</em> measure of overall 'dangerousness'.",
+    options: [
+      "High construct validity — the PCL-R is the gold standard for this kind of assessment",
+      "Questionable construct validity — the PCL-R measures psychopathy specifically, not 'dangerousness' broadly",
+      "Low construct validity — the PCL-R has no relationship to violent behaviour"
+    ],
+    correct: 1,
+    verdict: "medium",
+    reason: "This is <strong>questionable construct validity</strong> — not for the PCL-R itself, but for what the team is claiming to measure. The PCL-R is a well-validated measure of <em>psychopathy</em> specifically, and psychopathy is one risk factor for violent reoffending. However, 'dangerousness' is a broader construct that also involves situational factors, substance use, social supports, and mental state. Using a psychopathy score as a proxy for overall risk conflates two different constructs. This is a real issue in Australian forensic practice — the tool is valid for what it claims to measure, but the construct being claimed ('dangerousness') is broader than what it actually captures."
+  }
+];
+
+const labels = ['A', 'B', 'C'];
+let current = 0, score = 0;
+
+function render() {
+  const q = questions[current];
+  document.getElementById('q-num').textContent = `Q${current + 1}`;
+  document.getElementById('q-context').textContent = q.context;
+  document.getElementById('s-title').textContent = q.title;
+  document.getElementById('s-text').textContent = q.text;
+  document.getElementById('prog').style.width = `${(current / questions.length) * 100}%`;
+  document.getElementById('prog-label').textContent = `Question ${current + 1} of ${questions.length}`;
+
+  document.getElementById('options').innerHTML = q.options.map((o, i) => `
+    <button class="opt" onclick="select(${i})" id="opt-${i}">
+      <span class="opt-letter">${labels[i]}</span>
+      <span>${o}</span>
+    </button>
+  `).join('');
+
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function select(i) {
+  const q = questions[current];
+  const isCorrect = i === q.correct;
+  if (isCorrect) score++;
+
+  document.querySelectorAll('.opt').forEach((el, idx) => {
+    el.disabled = true;
+    if (idx === q.correct) el.classList.add(i === idx ? 'correct' : 'missed');
+    else if (idx === i)    el.classList.add('wrong');
+  });
+
+  const verdictClass = { high: 'verdict-high', medium: 'verdict-medium', low: 'verdict-low' };
+  const verdictLabel = { high: '✓ High Construct Validity', medium: '⚠ Questionable Construct Validity', low: '✗ Low Construct Validity' };
+
+  const fb = document.getElementById('feedback');
+  fb.className = `feedback ${isCorrect ? 'correct-fb' : 'wrong-fb'}`;
+  fb.innerHTML = `
+    <div class="fb-title">${isCorrect ? '✓ Correct!' : '✗ Not quite — here\'s the reasoning:'}</div>
+    <span class="verdict-chip ${verdictClass[q.verdict]}">${verdictLabel[q.verdict]}</span>
+    <div>${q.reason}</div>
+  `;
+  fb.style.display = 'block';
+
+  const btn = document.getElementById('btn-next');
+  btn.style.display = 'block';
+  btn.textContent = current < questions.length - 1 ? 'Next →' : 'See Results';
+}
+
+function nextQ() {
+  current++;
+  if (current >= questions.length) showScore();
+  else render();
+}
+
+function showScore() {
+  document.getElementById('q-card').style.display = 'none';
+  document.querySelector('.nav').style.display = 'none';
+  const ss = document.getElementById('score-screen');
+  ss.style.display = 'block';
+  document.getElementById('score-big').textContent = `${score}/${questions.length}`;
+  const msgs = ['Review the feedback above carefully.', 'A couple of tricky ones — review the reasoning.', 'Good effort!', 'Strong understanding of construct validity!', 'Perfect — excellent reasoning!'];
+  document.getElementById('score-sub').textContent = msgs[score];
+}
+
+function restart() {
+  current = 0; score = 0;
+  document.getElementById('q-card').style.display = 'block';
+  document.querySelector('.nav').style.display = 'flex';
+  document.getElementById('score-screen').style.display = 'none';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

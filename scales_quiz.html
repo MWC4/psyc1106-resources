@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scales of Measurement Quiz — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --text: #e8eaf2;
+    --muted: #7b82a3;
+    --gold: #E8A000;
+    --gold-dim: rgba(232,160,0,0.15);
+    --green: #2ecc87;
+    --green-dim: rgba(46,204,135,0.12);
+    --red: #e8526a;
+    --red-dim: rgba(232,82,106,0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header { text-align: center; margin-bottom: 36px; max-width: 680px; }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .header p { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    width: 100%;
+    max-width: 760px;
+  }
+
+  .progress-bar { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--purple); border-radius: 3px; transition: width 0.5s ease; }
+  .progress-label { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+
+  .card {
+    width: 100%;
+    max-width: 760px;
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .card-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); }
+
+  .q-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+
+  .q-num {
+    background: var(--purple-dim);
+    color: var(--purple);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .q-context {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 500;
+    background: var(--surface2);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .measure-display {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--purple);
+  }
+
+  .measure-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 6px; }
+  .measure-name { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .measure-desc { font-size: 0.88rem; color: #aab0cc; line-height: 1.55; }
+
+  .q-ask { font-size: 0.9rem; color: var(--purple); font-weight: 600; }
+
+  /* Two-part answer: categorical vs continuous THEN scale type */
+  .two-step { padding: 20px 28px 24px; }
+
+  .step { margin-bottom: 20px; }
+  .step-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .opt-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .opt {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+
+  .opt:hover:not([disabled]) { border-color: var(--purple); background: var(--purple-dim); }
+  .opt[disabled] { cursor: default; }
+  .opt.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .opt.wrong   { border-color: var(--red);   background: var(--red-dim);   color: var(--red); opacity: 0.7; }
+  .opt.missed  { border-color: var(--green); background: var(--green-dim); color: var(--green); opacity: 0.6; }
+
+  .opt-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .opt.correct .opt-dot,
+  .opt.missed  .opt-dot { background: var(--green); border-color: var(--green); }
+  .opt.wrong   .opt-dot { background: var(--red);   border-color: var(--red); }
+
+  .divider { height: 1px; background: var(--border); margin: 4px 0 20px; }
+
+  .feedback {
+    margin: 0 28px 24px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    display: none;
+  }
+
+  .feedback.correct-fb { background: var(--green-dim); border: 1px solid var(--green); color: #a8f5d3; }
+  .feedback.wrong-fb   { background: var(--red-dim);   border: 1px solid var(--red);   color: #f5b8c2; }
+
+  .fb-title { font-weight: 700; margin-bottom: 6px; }
+  .fb-scale-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+  .scale-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: var(--purple-dim);
+    color: var(--purple);
+  }
+
+  .what-can { margin-top: 10px; font-size: 0.85rem; color: #aab0cc; }
+  .what-can strong { color: var(--text); }
+
+  .nav { width: 100%; max-width: 760px; display: flex; justify-content: flex-end; }
+
+  .btn-next {
+    padding: 12px 28px;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: none;
+    transition: opacity 0.2s;
+  }
+
+  .btn-next:hover { opacity: 0.88; }
+
+  .score-screen {
+    width: 100%;
+    max-width: 760px;
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 48px 36px;
+    text-align: center;
+    display: none;
+  }
+
+  .score-screen h2 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 8px; }
+  .score-big { font-size: 4rem; font-weight: 700; color: var(--purple); margin: 20px 0; line-height: 1; }
+  .score-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; }
+
+  .btn-restart {
+    padding: 12px 32px;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Scales of Measurement</h1>
+  <p>For each measure, identify whether it is categorical or continuous — and which scale type applies.</p>
+</div>
+
+<div class="progress-row">
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="progress-label" id="prog-label">Question 1 of 5</div>
+</div>
+
+<div class="card" id="q-card">
+  <div class="card-header">
+    <div class="q-meta">
+      <span class="q-num" id="q-num">Q1</span>
+      <span class="q-context" id="q-context"></span>
+    </div>
+    <div class="measure-display">
+      <div class="measure-label">The Measure</div>
+      <div class="measure-name" id="m-name"></div>
+      <div class="measure-desc" id="m-desc"></div>
+    </div>
+    <div class="q-ask">What type of scale is this?</div>
+  </div>
+
+  <div class="two-step">
+    <div class="step">
+      <div class="step-label">Step 1 — Categorical or Continuous?</div>
+      <div class="opt-row" id="step1-opts"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="step-label">Step 2 — Scale Type?</div>
+      <div class="opt-row" id="step2-opts"></div>
+    </div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<div class="nav">
+  <button class="btn-next" id="btn-next" onclick="nextQ()">Next →</button>
+</div>
+
+<div class="score-screen" id="score-screen">
+  <h2>Session Complete</h2>
+  <div class="score-big" id="score-big"></div>
+  <div class="score-sub" id="score-sub"></div>
+  <button class="btn-restart" onclick="restart()">Try Again</button>
+</div>
+
+<script>
+const questions = [
+  {
+    context: "Clinical psychology",
+    name: "DSM-5 Diagnosis",
+    desc: "A psychologist records a client's primary diagnosis from the DSM-5 (e.g., Major Depressive Disorder, Generalised Anxiety Disorder, PTSD, No diagnosis). Each client gets one category.",
+    catCont: "categorical",
+    scaleType: "nominal",
+    reason: "This is <strong>nominal</strong>. DSM-5 categories are labels — there's no meaningful order between them. MDD is not 'more' than GAD, and you can't calculate an average diagnosis. You can only count how many people fall into each category.",
+    canDo: "Count frequencies, compare group sizes — that's it.",
+    cannotDo: "Cannot rank, add, subtract, or treat as a number."
+  },
+  {
+    context: "Health psychology",
+    name: "PHQ-9 Depression Scale",
+    desc: "The Patient Health Questionnaire-9 asks about 9 depression symptoms, each rated 0–3. Total scores range from 0 (no symptoms) to 27 (severe). Widely used in Australian GP practices.",
+    catCont: "continuous",
+    scaleType: "interval",
+    reason: "This is <strong>interval</strong>. Equal gaps are assumed between points — a difference of 5 points means the same thing anywhere on the scale. However, a score of 0 does <em>not</em> mean a complete absence of depression; it means no symptoms detected on this scale. So ratios aren't meaningful: a score of 20 is not 'twice as depressed' as a score of 10.",
+    canDo: "Calculate means, compare averages across groups, add and subtract.",
+    cannotDo: "Cannot form meaningful ratios (e.g., 'twice as depressed')."
+  },
+  {
+    context: "Neuropsychology",
+    name: "Reaction Time (milliseconds)",
+    desc: "In a cognitive assessment, a patient presses a button as quickly as possible when a stimulus appears. Their response time is recorded in milliseconds. Used to assess processing speed after TBI.",
+    catCont: "continuous",
+    scaleType: "ratio",
+    reason: "This is <strong>ratio</strong>. Milliseconds have a true zero (0ms = no delay at all — theoretically impossible but it's a genuine absence). Equal intervals exist, and ratios are fully meaningful: 400ms is genuinely twice as slow as 200ms. This is one of the cleanest ratio measures in psychology.",
+    canDo: "All operations: calculate means, form ratios, state that one score is twice another.",
+    cannotDo: "Nothing — all mathematical operations apply."
+  },
+  {
+    context: "Counselling / Mental health",
+    name: "Symptom Severity Rating",
+    desc: "A counsellor rates a client's current symptom severity as: Minimal / Mild / Moderate / Severe. This is a clinical judgment recorded after each session.",
+    catCont: "categorical",
+    scaleType: "ordinal",
+    reason: "This is <strong>ordinal</strong>. There is a clear order (Minimal < Mild < Moderate < Severe), but the gaps between levels are unequal — the clinical difference between Minimal and Mild is not necessarily the same as the difference between Moderate and Severe. You cannot calculate a meaningful average of these labels.",
+    canDo: "Rank order clients, identify who is worse/better than another.",
+    cannotDo: "Cannot average, add, or assume equal spacing between categories."
+  },
+  {
+    context: "Developmental psychology",
+    name: "Number of Therapy Sessions Attended",
+    desc: "A researcher records how many individual therapy sessions each child has attended as part of a school-based mental health program across the year. Possible values: 0, 1, 2, 3… etc.",
+    catCont: "continuous",
+    scaleType: "ratio",
+    reason: "This is <strong>ratio</strong>. Zero sessions is a genuine, meaningful zero (the child attended nothing). Equal intervals apply, and ratios make sense: a child who attended 8 sessions attended exactly twice as many as a child who attended 4. Counts are one of the most natural ratio measures.",
+    canDo: "All operations. Means, ratios, 'twice as many' — all valid.",
+    cannotDo: "Nothing — all mathematical operations are appropriate."
+  }
+];
+
+let current = 0, score = 0;
+let step1done = false;
+let step1correct = false;
+
+function render() {
+  const q = questions[current];
+  document.getElementById('q-num').textContent = `Q${current + 1}`;
+  document.getElementById('q-context').textContent = q.context;
+  document.getElementById('m-name').textContent = q.name;
+  document.getElementById('m-desc').textContent = q.desc;
+  document.getElementById('prog').style.width = `${(current / questions.length) * 100}%`;
+  document.getElementById('prog-label').textContent = `Question ${current + 1} of ${questions.length}`;
+
+  // Step 1 options
+  document.getElementById('step1-opts').innerHTML = ['Categorical', 'Continuous'].map(o => `
+    <button class="opt" onclick="selectStep1('${o.toLowerCase()}')" id="s1-${o.toLowerCase()}">
+      <span class="opt-dot"></span>${o}
+    </button>
+  `).join('');
+
+  // Step 2 options
+  document.getElementById('step2-opts').innerHTML = ['Nominal', 'Ordinal', 'Interval', 'Ratio'].map(o => `
+    <button class="opt" onclick="selectStep2('${o.toLowerCase()}')" id="s2-${o.toLowerCase()}" disabled>
+      <span class="opt-dot"></span>${o}
+    </button>
+  `).join('');
+
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+  step1done = false;
+  step1correct = false;
+}
+
+function selectStep1(val) {
+  if (step1done) return;
+  step1done = true;
+  const q = questions[current];
+  step1correct = val === q.catCont;
+
+  ['categorical','continuous'].forEach(v => {
+    const el = document.getElementById('s1-' + v);
+    el.disabled = true;
+    if (v === q.catCont) el.classList.add(val === v ? 'correct' : 'missed');
+    else if (v === val)  el.classList.add('wrong');
+  });
+
+  // Enable step 2
+  ['nominal','ordinal','interval','ratio'].forEach(v => {
+    document.getElementById('s2-' + v).disabled = false;
+  });
+}
+
+function selectStep2(val) {
+  const q = questions[current];
+  const isCorrect = val === q.scaleType;
+  const fullCorrect = step1correct && isCorrect;
+  if (fullCorrect) score++;
+
+  ['nominal','ordinal','interval','ratio'].forEach(v => {
+    const el = document.getElementById('s2-' + v);
+    el.disabled = true;
+    if (v === q.scaleType) el.classList.add(val === v ? 'correct' : 'missed');
+    else if (v === val)    el.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = `feedback ${fullCorrect ? 'correct-fb' : 'wrong-fb'}`;
+  fb.innerHTML = `
+    <div class="fb-title">${fullCorrect ? '✓ Correct!' : '✗ Not quite — here\'s why:'}</div>
+    <div>${q.reason}</div>
+    <div class="fb-scale-row">
+      <span class="scale-chip">${q.catCont.charAt(0).toUpperCase() + q.catCont.slice(1)}</span>
+      <span class="scale-chip">${q.scaleType.charAt(0).toUpperCase() + q.scaleType.slice(1)}</span>
+    </div>
+    <div class="what-can"><strong>Can do:</strong> ${q.canDo}<br><strong>Cannot do:</strong> ${q.cannotDo}</div>
+  `;
+  fb.style.display = 'block';
+
+  const btn = document.getElementById('btn-next');
+  btn.style.display = 'block';
+  btn.textContent = current < questions.length - 1 ? 'Next →' : 'See Results';
+}
+
+function nextQ() {
+  current++;
+  if (current >= questions.length) showScore();
+  else render();
+}
+
+function showScore() {
+  document.getElementById('q-card').style.display = 'none';
+  document.querySelector('.nav').style.display = 'none';
+  const ss = document.getElementById('score-screen');
+  ss.style.display = 'block';
+  document.getElementById('score-big').textContent = `${score}/${questions.length}`;
+  const msgs = ['Keep reviewing — look back at the feedback!', 'Getting there — review the scale types again.', 'Decent start — a couple to revisit.', 'Strong work!', 'Excellent — all five correct!'];
+  document.getElementById('score-sub').textContent = msgs[score];
+}
+
+function restart() {
+  current = 0; score = 0;
+  document.getElementById('q-card').style.display = 'block';
+  document.querySelector('.nav').style.display = 'flex';
+  document.getElementById('score-screen').style.display = 'none';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
