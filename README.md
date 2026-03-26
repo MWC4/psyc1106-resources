@@ -1,0 +1,1 @@
+# psyc1106-resources
