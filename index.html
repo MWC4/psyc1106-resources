@@ -5,150 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PSYC1106 — Interactive Resources</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
-
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap');
   :root {
-    --gold: #E8A000;
-    --bg: #f7f7f5;
-    --surface: #ffffff;
-    --text: #1a1a1a;
-    --muted: #666;
-    --border: #e5e5e0;
+    --navy:#0d2137; --navy-mid:#163352; --navy-light:#e8edf2;
+    --gold:#E8A000; --gold-light:#fff8e6;
+    --text:#1a1a1a; --muted:#5a6a7a; --border:#dde3ea; --bg:#f4f6f8; --surface:#ffffff;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 48px 20px 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 48px;
-    max-width: 600px;
-  }
-
-  .header .tag {
-    display: inline-block;
-    background: var(--gold);
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 5px 14px;
-    border-radius: 20px;
-    margin-bottom: 14px;
-  }
-
-  .header h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2.4rem;
-    color: var(--text);
-    margin-bottom: 10px;
-    line-height: 1.2;
-  }
-
-  .header p {
-    font-size: 1rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  .section {
-    width: 100%;
-    max-width: 800px;
-    margin-bottom: 40px;
-  }
-
-  .section-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 14px;
-    padding-left: 4px;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 14px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px 20px;
-    text-decoration: none;
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-  }
-
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    border-color: var(--gold);
-  }
-
-  .card-icon {
-    font-size: 1.6rem;
-    margin-bottom: 4px;
-  }
-
-  .card-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1.3;
-  }
-
-  .card-desc {
-    font-size: 0.82rem;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .card-type {
-    margin-top: 6px;
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 3px 9px;
-    border-radius: 20px;
-  }
-
-  .type-quiz    { background: #fff3e0; color: #c97000; }
-  .type-ref     { background: #e8f5e9; color: #2e7d32; }
-
-  .footer {
-    margin-top: 20px;
-    font-size: 0.8rem;
-    color: #bbb;
-    text-align: center;
-  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;display:flex;flex-direction:column;align-items:center;}
+  .top-bar{width:100%;background:var(--navy);padding:22px 36px;margin-bottom:40px;}
+  .top-bar .course-tag{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:4px;}
+  .top-bar h1{font-family:'Source Serif 4',serif;font-size:1.6rem;font-weight:600;color:#fff;line-height:1.2;}
+  .top-bar p{font-size:0.88rem;color:rgba(255,255,255,0.6);margin-top:4px;}
+  .section{width:100%;max-width:800px;padding:0 16px;margin-bottom:36px;}
+  .section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;padding-left:2px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 18px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:8px;transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s;}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.08);border-color:var(--gold);}
+  .card-icon{font-size:1.5rem;margin-bottom:2px;}
+  .card-title{font-size:0.95rem;font-weight:700;color:var(--navy);line-height:1.3;}
+  .card-desc{font-size:0.82rem;color:var(--muted);line-height:1.5;}
+  .card-type{margin-top:6px;display:inline-block;font-size:0.68rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:3px 9px;border-radius:20px;}
+  .type-quiz{background:var(--gold-light);color:#8a6000;}
+  .type-ref{background:var(--navy-light);color:var(--navy-mid);}
+  .footer{margin-top:10px;font-size:0.78rem;color:#bbb;text-align:center;}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <div class="tag">PSYC1106 · Flinders University</div>
-  <h1>Research Methods 1<br>Interactive Resources</h1>
-  <p>Module 2: Measurement — interactive demos and practice quizzes.</p>
+<div class="top-bar">
+  <div class="course-tag">PSYC1106 · Flinders University</div>
+  <h1>Research Methods 1 — Interactive Resources</h1>
+  <p>Module 2: Psychological Measurement</p>
 </div>
 
 <div class="section">
@@ -156,19 +43,19 @@
   <div class="grid">
     <a class="card" href="scales_quiz.html">
       <div class="card-icon">📏</div>
-      <div class="card-title">Scales of Measurement Quiz</div>
+      <div class="card-title">Scales of Measurement</div>
       <div class="card-desc">5 scenarios — identify categorical vs continuous and the specific scale type.</div>
       <span class="card-type type-quiz">Quiz · 5 questions</span>
     </a>
     <a class="card" href="reliability_quiz.html">
       <div class="card-icon">🔁</div>
-      <div class="card-title">Reliability in Practice Quiz</div>
+      <div class="card-title">Reliability in Practice</div>
       <div class="card-desc">5 scenarios — identify when test-retest, interrater, both, or neither applies.</div>
       <span class="card-type type-quiz">Quiz · 5 questions</span>
     </a>
     <a class="card" href="construct_validity_quiz.html">
       <div class="card-icon">🎯</div>
-      <div class="card-title">Construct Validity Quiz</div>
+      <div class="card-title">Construct Validity</div>
       <div class="card-desc">5 scenarios — rate construct validity as high, questionable, or low.</div>
       <span class="card-type type-quiz">Quiz · 5 questions</span>
     </a>
@@ -186,7 +73,7 @@
     </a>
     <a class="card" href="reliability_validity_demo.html">
       <div class="card-icon">🎯</div>
-      <div class="card-title">Reliability & Validity</div>
+      <div class="card-title">Reliability &amp; Validity</div>
       <div class="card-desc">Interactive bullseye showing all four combinations of reliability and validity.</div>
       <span class="card-type type-ref">Explainer</span>
     </a>
@@ -200,6 +87,5 @@
 </div>
 
 <div class="footer">PSYC1106 Research Methods 1 · Flinders University</div>
-
 </body>
 </html>
