@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confounds in Research — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+  :root{
+    --navy:#0d2137; --navy-mid:#163352; --navy-light:#e8edf2;
+    --gold:#E8A000; --gold-light:#fff8e6;
+    --green:#1a7a4a; --green-light:#e6f4ed;
+    --red:#c0392b; --red-light:#fdecea;
+    --teal:#007b8a; --teal-light:#e0f4f6;
+    --text:#1a1a1a; --muted:#5a6a7a; --border:#dde3ea; --bg:#f4f6f8; --surface:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;display:flex;flex-direction:column;align-items:center;}
+
+  .top-bar{width:100%;background:var(--navy);padding:18px 32px;display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+  .top-bar .icon{width:38px;height:38px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .top-bar .course-tag{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:2px;}
+  .top-bar h1{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:#fff;line-height:1.2;}
+
+  .main{width:100%;max-width:880px;padding:0 16px;}
+
+  /* Scenario tabs */
+  .sc-tabs{display:flex;gap:0;margin-bottom:24px;}
+  .sc-tab{flex:1;padding:12px 10px;border:1px solid var(--border);background:var(--surface);font-family:'Source Sans 3',Arial,sans-serif;font-size:0.82rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.4;}
+  .sc-tab:first-child{border-radius:8px 0 0 8px;}
+  .sc-tab:last-child{border-radius:0 8px 8px 0;}
+  .sc-tab:not(:last-child){border-right:none;}
+  .sc-tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  /* Steps */
+  .steps{display:flex;flex-direction:column;gap:12px;}
+  .step{background:var(--surface);border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.05);overflow:hidden;}
+  .step-hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;user-select:none;}
+  .step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;flex-shrink:0;background:var(--navy-light);color:var(--navy);transition:background 0.2s;}
+  .step-num.active{background:var(--navy);color:#fff;}
+  .step-num.done{background:var(--green);color:#fff;}
+  .step-title{font-weight:700;font-size:0.9rem;color:var(--navy);flex:1;}
+  .chev{color:var(--muted);font-size:0.72rem;transition:transform 0.2s;}
+  .step.open .chev{transform:rotate(180deg);}
+  .step-body{display:none;padding:0 20px 20px;}
+  .step.open .step-body{display:block;}
+
+  /* Content pieces */
+  .obs-box{background:var(--teal-light);border:1px solid var(--teal);border-radius:8px;padding:14px 16px;margin-bottom:14px;}
+  .obs-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:5px;}
+  .obs-text{font-size:0.92rem;font-weight:600;color:#004d56;line-height:1.5;}
+  .obs-sub{font-size:0.83rem;color:var(--teal);margin-top:4px;}
+
+  .theory-box{background:var(--navy-light);border-radius:8px;padding:14px 16px;margin-bottom:14px;}
+  .theory-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:5px;}
+  .theory-text{font-size:0.92rem;font-weight:600;color:var(--navy);line-height:1.5;}
+  .theory-sub{font-size:0.83rem;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+  /* Poll buttons */
+  .poll-row{display:flex;gap:10px;margin:14px 0;}
+  .poll-btn{flex:1;padding:11px 8px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font-family:'Source Sans 3',Arial,sans-serif;font-size:0.85rem;font-weight:600;color:var(--navy);cursor:pointer;transition:all 0.15s;text-align:center;}
+  .poll-btn:hover{border-color:var(--navy);background:var(--navy-light);}
+  .poll-btn.chosen-yes{background:var(--green-light);border-color:var(--green);color:var(--green);}
+  .poll-btn.chosen-no{background:var(--red-light);border-color:var(--red);color:var(--red);}
+  .poll-btn.chosen-maybe{background:var(--gold-light);border-color:var(--gold);color:#8a6000;}
+  .poll-result{padding:11px 14px;border-radius:8px;font-size:0.87rem;line-height:1.6;display:none;margin-bottom:10px;}
+  .poll-result.show{display:block;}
+  .poll-result.yes{background:var(--green-light);border:1px solid #a8d5bc;color:#145a35;}
+  .poll-result.no{background:var(--red-light);border:1px solid #f0b8b2;color:#7a1a10;}
+  .poll-result.maybe{background:var(--gold-light);border:1px solid var(--gold);color:#7a5000;}
+
+  /* Check items */
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:0.87rem;line-height:1.5;margin-bottom:8px;transition:all 0.2s;}
+  .check-item.yes{border-color:var(--green);background:var(--green-light);color:#145a35;}
+  .check-item.no{border-color:var(--red);background:var(--red-light);color:#7a1a10;}
+  .check-item.maybe{border-color:var(--gold);background:var(--gold-light);color:#7a5000;}
+  .check-icon{font-size:1rem;flex-shrink:0;min-width:20px;margin-top:1px;}
+
+  /* Candidate variables (scenario 3) */
+  .candidates{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
+  .cand-card{padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.2s;}
+  .cand-card:hover:not(.revealed){border-color:var(--navy);background:var(--navy-light);}
+  .cand-name{font-weight:700;font-size:0.88rem;color:var(--navy);margin-bottom:3px;}
+  .cand-hint{font-size:0.78rem;color:var(--muted);line-height:1.4;}
+  .cand-card.revealed.confound{border-color:var(--red);background:var(--red-light);}
+  .cand-card.revealed.confound .cand-name{color:var(--red);}
+  .cand-card.revealed.not-confound{border-color:var(--border);background:var(--navy-light);}
+  .cand-card.revealed.not-confound .cand-name{color:var(--muted);}
+  .cand-verdict{font-size:0.78rem;margin-top:5px;display:none;line-height:1.4;}
+  .cand-card.revealed .cand-verdict{display:block;}
+
+  /* Diagram */
+  .diag-wrap{display:flex;justify-content:center;margin:14px 0 8px;}
+
+  /* Verdict boxes */
+  .verdict{padding:14px 16px;border-radius:8px;font-size:0.87rem;line-height:1.65;margin-top:8px;}
+  .verdict.conf{background:var(--red-light);border:1px solid #f0b8b2;color:#7a1a10;}
+  .verdict.not{background:var(--green-light);border:1px solid #a8d5bc;color:#145a35;}
+  .verdict-title{font-weight:700;margin-bottom:5px;}
+
+  .btn-reveal{padding:9px 20px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-family:'Source Sans 3',Arial,sans-serif;font-size:0.86rem;font-weight:700;cursor:pointer;margin-top:6px;}
+  .btn-reveal:hover{background:var(--navy-mid);}
+
+  .note{font-size:0.83rem;color:var(--muted);line-height:1.6;margin-top:10px;font-style:italic;}
+
+  /* Flip cards */
+  .flip-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+  .flip-card{height:120px;perspective:800px;cursor:pointer;}
+  .flip-card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s ease;}
+  .flip-card.flipped .flip-card-inner{transform:rotateY(180deg);}
+  .flip-front,.flip-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:12px 14px;text-align:center;}
+  .flip-front{background:var(--navy-light);border:1.5px solid var(--border);flex-direction:column;gap:6px;}
+  .flip-front-q{font-size:0.84rem;font-weight:700;color:var(--navy);line-height:1.4;}
+  .flip-front-hint{font-size:0.74rem;color:var(--muted);}
+  .flip-back{background:var(--green-light);border:1.5px solid var(--green);transform:rotateY(180deg);flex-direction:column;gap:4px;}
+  .flip-back-icon{font-size:1.1rem;}
+  .flip-back-ans{font-size:0.83rem;font-weight:700;color:var(--green);line-height:1.4;}
+  .flip-back-exp{font-size:0.74rem;color:#145a35;line-height:1.4;}
+
+  /* Scatterplot illustration */
+  .scatter-wrap{display:flex;justify-content:center;margin:12px 0;}
+
+  @media(max-width:560px){.candidates{grid-template-columns:1fr;}.poll-row{flex-direction:column;}.flip-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="icon">🔀</div>
+  <div>
+    <div class="course-tag">PSYC1106 · Module 3</div>
+    <h1>Confounds in Research</h1>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sc-tabs">
+    <button class="sc-tab active" onclick="setScenario(0)">1 · Height &amp; Reading<br><small style="opacity:0.7">What's really going on?</small></button>
+    <button class="sc-tab" onclick="setScenario(1)">2 · Exercise &amp; Wellbeing<br><small style="opacity:0.7">Theory + confounds</small></button>
+    <button class="sc-tab" onclick="setScenario(2)">3 · Social Media &amp; Depression<br><small style="opacity:0.7">Spot the confounds</small></button>
+  </div>
+  <div class="steps" id="steps"></div>
+</div>
+
+<script>
+let currentSc = 0;
+// Per-scenario state: which steps are open, poll answers, reveals
+let states = [
+  {open:[true,false,false], poll:null, flip1:false, flip2:false, verdictRevealed:false},
+  {open:[true,false,false], flip1:false, flip2:false, flip3:false, flip4:false, verdictRevealed:false},
+  {open:[true,false,false], revealed:false, candRevealed:[]},
+];
+
+// ── DIAGRAM HELPER ──────────────────────────────────────────────────────────
+function makeDiagram(causal, outcome, confound, showConf, a1, a2, isConf) {
+  const W=460,H=230,cx1=90,cy1=182,cx2=370,cy2=182,cfx=230,cfy=52;
+  function arr(x1,y1,x2,y2,col,dash){
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/len,uy=dy/len,ex=x2-ux*16,ey=y2-uy*16;
+    const d=dash?'stroke-dasharray="7,4"':'';
+    const a=Math.atan2(ey-y1,ex-x1);
+    return `<line x1="${x1}" y1="${y1}" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="2.5" ${d}/>
+            <polygon points="${ex},${ey} ${ex-12*Math.cos(a-0.35)},${ey-12*Math.sin(a-0.35)} ${ex-12*Math.cos(a+0.35)},${ey-12*Math.sin(a+0.35)}" fill="${col}"/>`;
+  }
+  function wrapText(txt, maxChars) {
+    if(txt.length<=maxChars) return [txt];
+    const mid=Math.floor(txt.length/2);
+    let sp=txt.lastIndexOf(' ',mid);
+    if(sp<1) sp=txt.indexOf(' ',mid);
+    if(sp<1) return [txt];
+    return [txt.slice(0,sp), txt.slice(sp+1)];
+  }
+  function box(x,y,w,h,txt,sub,fill,tc='#fff'){
+    const lines=wrapText(txt,15);
+    const lineH=14;
+    const totalTextH=lines.length*lineH;
+    // Dynamically expand box height if content doesn't fit
+    const reqH=10+totalTextH+(sub?20:0)+8;
+    const bh=Math.max(h,reqH);
+    // Text baselines start after top padding (8px) + one lineH offset
+    const textTop=(y-bh/2)+8+lineH;
+    let out=`<rect x="${x-w/2}" y="${y-bh/2}" width="${w}" height="${bh}" rx="9" fill="${fill}"/>`;
+    lines.forEach((l,i)=>{
+      out+=`<text x="${x}" y="${textTop+i*lineH}" text-anchor="middle" fill="${tc}" font-size="12" font-weight="700">${l}</text>`;
+    });
+    if(sub) out+=`<text x="${x}" y="${y+bh/2-7}" text-anchor="middle" fill="${tc}cc" font-size="9.5" letter-spacing="0.5">${sub}</text>`;
+    return out;
+  }
+  let svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Source Sans 3',Arial,sans-serif;max-width:100%;">`;
+  svg+=arr(cx1+62,cy1,cx2-62,cy2,'#b0bec5',true);
+  svg+=`<text x="${W/2}" y="${cy1-14}" text-anchor="middle" fill="#b0bec5" font-size="10.5">observed correlation?</text>`;
+  if(showConf){
+    if(a1) svg+=arr(cfx-22,cfy+22,cx1+22,cy1-22,isConf?'#c0392b':'#1a7a4a');
+    else{const mx=(cfx+cx1)/2-20,my=(cfy+cy1)/2;svg+=`<text x="${mx}" y="${my}" text-anchor="middle" fill="#c0392b" font-size="17" font-weight="700">✗</text>`;}
+    if(a2) svg+=arr(cfx+22,cfy+22,cx2-22,cy2-22,isConf?'#c0392b':'#1a7a4a');
+    else{const mx=(cfx+cx2)/2+20,my=(cfy+cy2)/2;svg+=`<text x="${mx}" y="${my}" text-anchor="middle" fill="#c0392b" font-size="17" font-weight="700">✗</text>`;}
+  }
+  svg+=box(cx1,cy1,160,56,causal,'(variable 1)','#0d2137');
+  svg+=box(cx2,cy2,160,56,outcome,'(variable 2)','#0d2137');
+  const cf=showConf?(isConf?'#c0392b':'#1a7a4a'):'#666';
+  const sub=showConf?(isConf?'CONFOUND':'NOT A CONFOUND'):'third variable?';
+  svg+=box(cfx,cfy,180,46,confound,sub,cf);
+  return svg+'</svg>';
+}
+
+// ── SCHOOL DATA GENERATOR ────────────────────────────────────────────────────
+function genSchoolData(){
+  function rng(s){let v=s;return()=>{v=(v*9301+49297)%233280;return v/233280;}}
+  const rand=rng(42);
+  const raw=[];
+  for(let i=0;i<22;i++){
+    const age=6+rand()*6;
+    const height=108+5.8*(age-6)+(rand()-0.5)*7;
+    const reading=15+11.5*(age-6)+(rand()-0.5)*13;
+    raw.push({age,height,reading});
+  }
+  const minH=Math.min(...raw.map(d=>d.height)),maxH=Math.max(...raw.map(d=>d.height));
+  const minR=Math.min(...raw.map(d=>d.reading)),maxR=Math.max(...raw.map(d=>d.reading));
+  return raw.map(d=>({age:d.age,x:(d.height-minH)/(maxH-minH)*78+11,y:(d.reading-minR)/(maxR-minR)*78+11,rawH:d.height,rawR:d.reading}));
+}
+
+function getResiduals(data){
+  const n=data.length;
+  const ages=data.map(d=>d.age);
+  const mA=ages.reduce((a,b)=>a+b)/n;
+  function resid(vals){
+    const mV=vals.reduce((a,b)=>a+b)/n;
+    const slope=ages.reduce((s,a,i)=>s+(a-mA)*(vals[i]-mV),0)/ages.reduce((s,a)=>s+(a-mA)**2,0);
+    const b=mV-slope*mA;
+    return vals.map((v,i)=>v-(b+slope*ages[i]));
+  }
+  const rH=resid(data.map(d=>d.rawH));
+  const rR=resid(data.map(d=>d.rawR));
+  const mnH=Math.min(...rH),mxH=Math.max(...rH);
+  const mnR=Math.min(...rR),mxR=Math.max(...rR);
+  return data.map((d,i)=>({age:d.age,x:(rH[i]-mnH)/(mxH-mnH)*78+11,y:(rR[i]-mnR)/(mxR-mnR)*78+11}));
+}
+
+function ageColor(age){
+  const t=Math.max(0,Math.min(1,(age-6)/6));
+  const lerp=(a,b)=>Math.round(a+t*(b-a));
+  const r=lerp(186,13),g=lerp(218,33),b=lerp(245,55);
+  return`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+function lobfCoeff(pts){
+  const n=pts.length,sx=pts.reduce((a,p)=>a+p.x,0),sy=pts.reduce((a,p)=>a+p.y,0);
+  const sxy=pts.reduce((a,p)=>a+p.x*p.y,0),sx2=pts.reduce((a,p)=>a+p.x*p.x,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;
+  return{m,b};
+}
+
+function pearsonR(pts){
+  const n=pts.length;
+  const mx=pts.reduce((a,p)=>a+p.x,0)/n,my=pts.reduce((a,p)=>a+p.y,0)/n;
+  const num=pts.reduce((a,p)=>a+(p.x-mx)*(p.y-my),0);
+  const den=Math.sqrt(pts.reduce((a,p)=>a+(p.x-mx)**2,0)*pts.reduce((a,p)=>a+(p.y-my)**2,0));
+  return den===0?0:num/den;
+}
+
+function drawScatterSVG(pts,xLabel,yLabel,rOverride,colored,W=290,H=210){
+  const pad=40;
+  const cx=x=>pad+(x/100)*(W-2*pad),cy=y=>(H-pad-10)-((y/100)*(H-2*pad-10));
+  const{m,b}=lobfCoeff(pts);
+  const r=rOverride!==null?rOverride:pearsonR(pts);
+  const rStr=r>=0?`+${r.toFixed(2)}`:r.toFixed(2);
+  let svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Source Sans 3',Arial,sans-serif;background:#f9fafb;border-radius:8px;max-width:100%;">`;
+  svg+=`<rect width="${W}" height="${H}" fill="#f9fafb" rx="8"/>`;
+  svg+=`<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad-10}" stroke="#d1d8e0" stroke-width="1"/>`;
+  svg+=`<line x1="${pad}" y1="${H-pad-10}" x2="${W-pad}" y2="${H-pad-10}" stroke="#d1d8e0" stroke-width="1"/>`;
+  svg+=`<text x="${W/2}" y="${H-4}" text-anchor="middle" fill="#8899aa" font-size="10.5">${xLabel}</text>`;
+  svg+=`<text x="11" y="${(H-pad)/2}" text-anchor="middle" fill="#8899aa" font-size="10.5" transform="rotate(-90,11,${(H-pad)/2})">${yLabel}</text>`;
+  pts.forEach(p=>{
+    const col=colored?ageColor(p.age):'#0d2137';
+    svg+=`<circle cx="${cx(p.x)}" cy="${cy(p.y)}" r="5.5" fill="${col}" fill-opacity="0.78" stroke="${col}" stroke-width="1.2"/>`;
+  });
+  const lineCol=Math.abs(r)<0.15?'#888':'#E8A000';
+  svg+=`<line x1="${cx(0)}" y1="${cy(b)}" x2="${cx(100)}" y2="${cy(m*100+b)}" stroke="${lineCol}" stroke-width="2.5"/>`;
+  svg+=`<rect x="${W-pad-36}" y="${pad-2}" width="34" height="18" rx="4" fill="${Math.abs(r)>=0.3?'#fff8e6':'#e8edf2'}"/>`;
+  svg+=`<text x="${W-pad-19}" y="${pad+11}" text-anchor="middle" fill="${Math.abs(r)>=0.3?'#8a6000':'#5a6a7a'}" font-size="11" font-weight="700">r=${rStr}</text>`;
+  return svg+'</svg>';
+}
+
+function makeAgeLegend(){
+  const W=220,H=28;
+  let svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Source Sans 3',Arial,sans-serif;">`;
+  svg+=`<text x="0" y="17" fill="#5a6a7a" font-size="10.5" font-weight="700">Age:</text>`;
+  for(let i=0;i<=6;i++){
+    const age=6+i,x=34+i*26;
+    svg+=`<circle cx="${x}" cy="13" r="7" fill="${ageColor(age)}" fill-opacity="0.78" stroke="${ageColor(age)}" stroke-width="1"/>`;
+    if(i===0||i===3||i===6) svg+=`<text x="${x}" y="${H}" text-anchor="middle" fill="#5a6a7a" font-size="9">${age}yr</text>`;
+  }
+  return svg+'</svg>';
+}
+
+// ── SCENARIO 1: HEIGHT & READING ────────────────────────────────────────────
+function renderScenario1() {
+  const st = states[0];
+  const bothFlipped = st.flip1 && st.flip2;
+  const schoolData = genSchoolData();
+  const residData = getResiduals(schoolData);
+  const rawR = pearsonR(schoolData);
+  const residR = pearsonR(residData);
+
+  return [
+    {
+      title: 'Step 1 — We observe a relationship',
+      numClass: st.poll ? 'done' : 'active',
+      body: `
+        <div class="obs-box">
+          <div class="obs-label">What we observe</div>
+          <div class="obs-text">In a sample of primary school children, there is a <strong>strong positive correlation</strong> between height and reading test scores.</div>
+          <div class="obs-sub">Taller children tend to score higher on reading ability tests.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:14px 0;">
+          <div style="flex:1;min-width:220px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">Scatterplot — height vs reading score</div>
+            ${drawScatterSVG(schoolData,'Height','Reading score',rawR,false,300,218)}
+          </div>
+          <div style="flex:1;min-width:200px;font-size:0.84rem;color:var(--text);line-height:1.65;padding-top:28px;">
+            There is a strong positive correlation between height and reading scores in this sample of primary school children. Taller children tend to read better.<br><br>
+            But is height actually <em>causing</em> better reading ability? What else might explain this correlation?
+          </div>
+        </div>
+        <div class="diag-wrap">${makeDiagram('Height','Reading ability','?',false,false,false,false)}</div>
+        <p style="font-size:0.88rem;color:var(--text);margin:10px 0 8px;line-height:1.6;">Before concluding that height <em>causes</em> reading ability, ask: is there something else driving both of these upward?</p>
+        <p style="font-size:0.9rem;font-weight:700;color:var(--navy);margin-bottom:10px;">Could a third variable be driving this correlation?</p>
+        <div class="poll-row">
+          <button class="poll-btn ${st.poll==='yes'?'chosen-yes':''}" onclick="setPoll(0,'yes')">Yes, probably</button>
+          <button class="poll-btn ${st.poll==='maybe'?'chosen-maybe':''}" onclick="setPoll(0,'maybe')">Maybe — depends what it is</button>
+          <button class="poll-btn ${st.poll==='no'?'chosen-no':''}" onclick="setPoll(0,'no')">No — height really causes reading</button>
+        </div>
+        <div class="poll-result ${st.poll?'show':''} ${st.poll==='no'?'no':st.poll==='maybe'?'maybe':'yes'}">
+          ${st.poll==='no' ? '<strong>Think about it:</strong> What mechanism would cause taller bones to improve reading ability? There must be something else driving this correlation — keep going.' :
+            st.poll==='maybe' ? '<strong>Good instinct.</strong> We need a variable that could plausibly cause <em>both</em> height and reading to increase at the same time. Let\'s investigate age.' :
+            '<strong>Agreed.</strong> When two things seem causally unrelated but are strongly correlated, a third variable is almost always responsible. Let\'s think about what it might be.'}
+        </div>
+        ${st.poll ? `<button class="btn-reveal" style="margin-top:10px;" onclick="openStep(0,1)">Investigate a potential confound ↓</button>` : ''}
+      `
+    },
+    {
+      title: 'Step 2 — Is this variable a confound?',
+      numClass: st.verdictRevealed ? 'done' : '',
+      body: `
+        <h3 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">What about age?</h3>
+        <p style="font-size:0.88rem;line-height:1.65;margin-bottom:14px;color:var(--text);">Age (or development over time) could be the third variable influencing this relationship — causing both height and reading ability to change. For age to be a <em>confound</em>, it must cause <strong>both</strong>. Click each card to find out.</p>
+        <div class="flip-row">
+          <div class="flip-card ${st.flip1?'flipped':''}" onclick="flipCard(0,1)">
+            <div class="flip-card-inner">
+              <div class="flip-front">
+                <div class="flip-front-q">Does age cause height to increase?</div>
+                <div class="flip-front-hint">Click to reveal</div>
+              </div>
+              <div class="flip-back">
+                <div class="flip-back-icon">✓</div>
+                <div class="flip-back-ans">Yes</div>
+                <div class="flip-back-exp">As children age, they grow taller. Age directly drives height increases in childhood.</div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-card ${st.flip2?'flipped':''}" onclick="flipCard(0,2)">
+            <div class="flip-card-inner">
+              <div class="flip-front">
+                <div class="flip-front-q">Does age cause reading ability to improve?</div>
+                <div class="flip-front-hint">Click to reveal</div>
+              </div>
+              <div class="flip-back">
+                <div class="flip-back-icon">✓</div>
+                <div class="flip-back-ans">Yes</div>
+                <div class="flip-back-exp">As children age and progress through school, reading ability improves. Age drives reading development.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        ${bothFlipped && !st.verdictRevealed ? `<button class="btn-reveal" onclick="revealVerdict1()">Is age a potential confound? ↓</button>` : ''}
+        ${st.verdictRevealed ? `
+          <div class="diag-wrap">${makeDiagram('Height','Reading ability','Age / development',true,true,true,true)}</div>
+          <div class="verdict conf">
+            <div class="verdict-title">⚠ Yes — age is a confound</div>
+            Age causes both height and reading ability to increase throughout primary school, producing a strong positive correlation between them — even though height has no causal effect on reading. The correlation is real, but the causal story is wrong.
+          </div>
+          <button class="btn-reveal" style="margin-top:12px;" onclick="openStep(0,2)">What does this mean for research? ↓</button>
+        ` : ''}
+        ${!bothFlipped ? `<p class="note">Flip both cards above to unlock the verdict.</p>` : ''}
+      `
+    },
+    {
+      title: 'Step 3 — What if we measured age?',
+      numClass: '',
+      body: `
+        <p style="font-size:0.9rem;line-height:1.65;margin-bottom:14px;color:var(--text);">Good research doesn't just identify potential confounds — it <strong>measures them</strong>. Once we've measured a confound, we can use statistics to remove its contribution from both variables and see what relationship (if any) remains between our two constructs of interest.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;">
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">Raw correlation — dots coloured by age</div>
+            ${drawScatterSVG(schoolData,'Height','Reading score',rawR,true,270,200)}
+            <div style="margin-top:5px;">${makeAgeLegend()}</div>
+            <p style="font-size:0.8rem;color:var(--muted);margin-top:5px;line-height:1.4;">Younger children (light blue) cluster bottom-left; older children (dark navy) cluster top-right. Both variables are really just tracking age.</p>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">After accounting for age</div>
+            ${drawScatterSVG(residData,'Height (age removed)','Reading (age removed)',0.03,false,270,200)}
+            <p style="font-size:0.8rem;color:var(--muted);margin-top:5px;line-height:1.4;">Near-zero correlation — the apparent link between height and reading essentially disappears.</p>
+          </div>
+        </div>
+        <div class="verdict not" style="margin-top:4px;">
+          <div class="verdict-title">✓ The confound was responsible for the correlation</div>
+          Once we remove age's contribution from both variables, there is virtually no relationship between height and reading ability. This tells us the original correlation was entirely due to age — not a direct causal link between the two variables.
+        </div>
+        <div class="obs-box" style="margin-top:12px;">
+          <div class="obs-label">Looking ahead</div>
+          <div class="obs-text" style="font-size:0.88rem;font-weight:500;">Measuring confounds gives us the tools to address them.</div>
+          <div class="obs-sub" style="margin-top:5px;">In later years you'll learn exactly how "controlling for" a variable works statistically. For now the key point is: <strong>you can only account for a confound if you've measured it.</strong> This is why well-designed studies always identify and measure potential confounds before collecting data.</div>
+        </div>
+      `
+    }
+  ];
+}
+
+// ── EXERCISE DIAGRAM HELPER ──────────────────────────────────────────────────
+function makeExerciseDiagram(){
+  const W=550, H=328;
+
+  // Node centres
+  const ft ={x:78, y:65};
+  const ses={x:275,y:65};
+  const sm ={x:468,y:65};
+  const ex ={x:163,y:192};
+  const wb ={x:390,y:192};
+  const slp={x:275,y:274};
+
+  function arr(x1,y1,x2,y2,col,label,dash){
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    if(len<1) return '';
+    const ux=dx/len,uy=dy/len,ex2=x2-ux*5,ey2=y2-uy*5;
+    const a=Math.atan2(ey2-y1,ex2-x1);
+    const ds=dash?'stroke-dasharray="6,4"':'';
+    let o=`<line x1="${x1}" y1="${y1}" x2="${ex2}" y2="${ey2}" stroke="${col}" stroke-width="2.2" ${ds}/>
+           <polygon points="${ex2},${ey2} ${ex2-10*Math.cos(a-0.35)},${ey2-10*Math.sin(a-0.35)} ${ex2-10*Math.cos(a+0.35)},${ey2-10*Math.sin(a+0.35)}" fill="${col}"/>`;
+    if(label){const mx=(x1+ex2)/2,my=(y1+ey2)/2;o+=`<rect x="${mx-26}" y="${my-9}" width="52" height="16" rx="4" fill="white" opacity="0.9"/><text x="${mx}" y="${my+4}" text-anchor="middle" fill="${col==='#E8A000'?'#8a6000':col}" font-size="9.5" font-weight="700">${label}</text>`;}
+    return o;
+  }
+  function nd(x,y,w,h,lines,fill,tc){
+    tc=tc||'#fff';
+    const lh=13,th=(lines.length-1)*lh;
+    let o=`<rect x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="8" fill="${fill}"/>`;
+    lines.forEach((l,i)=>o+=`<text x="${x}" y="${y-th/2+i*lh+5}" text-anchor="middle" fill="${tc}" font-size="11" font-weight="700">${l}</text>`);
+    return o;
+  }
+
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Source Sans 3',Arial,sans-serif;max-width:100%;">`;
+
+  // ── Arrows (drawn before boxes so boxes sit on top) ──
+
+  // SES → Exercise: SOLID red (confound — real threat)
+  s+=arr(248,83, 185,170, '#c0392b','',false);
+  // SES → Wellbeing: SOLID red (confound — real threat)
+  s+=arr(305,83, 368,170, '#c0392b','',false);
+
+  // Fitness tracker → Exercise: DOTTED teal (potential, upstream, doesn't threaten theory)
+  s+=arr(85,83,  130,170, '#007b8a','',true);
+
+  // Social media → Wellbeing: DOTTED amber (potential, one arrow to DV, doesn't threaten theory)
+  s+=arr(428,83, 445,170, '#d97706','',true);
+
+  // Theory: Exercise → Wellbeing: SOLID gold
+  s+=arr(232,192, 321,192, '#E8A000','theory',false);
+
+  // Exercise → Sleep: SOLID grey (established downstream link)
+  s+=arr(193,214, 242,256, '#888','',false);
+
+  // Sleep → Wellbeing: DOTTED grey (potential mechanism — doesn't threaten theory)
+  s+=arr(337,274, 385,214, '#888','',true);
+
+  // ── Node boxes ──
+  s+=nd(ft.x, ft.y, 135,36, ['Fitness tracker'],     '#007b8a');
+  s+=nd(ses.x,ses.y,110,36, ['SES'],                  '#c0392b');
+  s+=nd(sm.x, sm.y, 140,40, ['Unhealthy','social media'], '#d97706');
+  s+=nd(ex.x, ex.y, 138,44, ['Exercise','(IV)'],      '#0d2137');
+  s+=nd(wb.x, wb.y, 138,44, ['Wellbeing','(DV)'],     '#0d2137');
+  s+=nd(slp.x,slp.y,122,36, ['Sleep quality'],        '#888');
+
+  // ── Legend (2 rows) ──
+  const r1=308, r2=320;
+  // Row 1
+  s+=`<line x1="4" y1="${r1}" x2="22" y2="${r1}" stroke="#c0392b" stroke-width="2.2"/>`;
+  s+=`<polygon points="22,${r1} 15,${r1-4} 15,${r1+4}" fill="#c0392b"/>`;
+  s+=`<text x="26" y="${r1+4}" fill="#c0392b" font-size="8.5" font-weight="600">Confound (→ both IV &amp; DV)</text>`;
+  s+=`<line x1="195" y1="${r1}" x2="213" y2="${r1}" stroke="#E8A000" stroke-width="2.2"/>`;
+  s+=`<polygon points="213,${r1} 206,${r1-4} 206,${r1+4}" fill="#E8A000"/>`;
+  s+=`<text x="217" y="${r1+4}" fill="#8a6000" font-size="8.5" font-weight="600">Theory (IV → DV)</text>`;
+  // Row 2
+  s+=`<line x1="4" y1="${r2}" x2="22" y2="${r2}" stroke="#888" stroke-width="2.2"/>`;
+  s+=`<polygon points="22,${r2} 15,${r2-4} 15,${r2+4}" fill="#888"/>`;
+  s+=`<text x="26" y="${r2+4}" fill="#666" font-size="8.5" font-weight="600">─── Solid: established causal link</text>`;
+  s+=`<line x1="255" y1="${r2}" x2="273" y2="${r2}" stroke="#888" stroke-width="2.2" stroke-dasharray="5,3"/>`;
+  s+=`<polygon points="273,${r2} 266,${r2-4} 266,${r2+4}" fill="#888"/>`;
+  s+=`<text x="277" y="${r2+4}" fill="#666" font-size="8.5" font-weight="600">- - - Dotted: potential, doesn't threaten theory</text>`;
+
+  return s+'</svg>';
+}
+
+function genExerciseData(){
+  function rng(s){let v=s;return()=>{v=(v*9301+49297)%233280;return v/233280;}}
+  const rand=rng(77);
+  const pts=[];
+  for(let i=0;i<22;i++){
+    const x=rand()*80+10;
+    const noise=(rand()-0.5)*2;
+    const y=50+0.52*(x-50)+noise*Math.sqrt(1-0.52*0.52)*30;
+    pts.push({x,y:Math.max(5,Math.min(95,y)),age:9});
+  }
+  return pts;
+}
+
+// ── SCENARIO 2: EXERCISE & WELLBEING ────────────────────────────────────────
+function renderScenario2() {
+  const st = states[1];
+  const exData = genExerciseData();
+  const allFlipped = st.flip1 && st.flip2 && st.flip3 && st.flip4;
+  const flippedCount = [st.flip1,st.flip2,st.flip3,st.flip4].filter(Boolean).length;
+
+  const cards = [
+    {
+      q: 'Having a fitness tracker',
+      isConf: false,
+      backShort: '✓ Not a confound',
+      backTag: 'Causes exercise (IV) only',
+      body: 'A fitness tracker motivates more exercise through goal-setting and feedback. Any wellbeing improvement comes through the exercise it encourages — the device itself has no direct effect on wellbeing. This is the "upstream of IV" case: the tracker increases the IV, and the DV changes because the theory is true, not because of a confound.'
+    },
+    {
+      q: 'Improved sleep quality',
+      isConf: false,
+      backShort: '✓ Not a confound',
+      backTag: 'Downstream of IV (caused by exercise)',
+      body: 'Exercise tends to improve sleep quality. This means sleep is caused BY the IV, not independent of it. Sleep may actually be part of the mechanism — one pathway through which exercise improves wellbeing. This is interesting for understanding how the effect works, but it cannot create a false correlation between exercise and wellbeing.'
+    },
+    {
+      q: 'Unhealthy social media use',
+      isConf: false,
+      backShort: '✓ Not a confound',
+      backTag: 'Affects DV only (one arrow)',
+      body: 'Unhealthy social media use may reduce wellbeing — but it does not directly cause people to exercise more or less. With only one arrow (to the DV), it adds noise to wellbeing measurements, making real effects harder to detect. But it cannot manufacture a false correlation between exercise and wellbeing. It is not a confound and does not need to be controlled for in the same way SES does.'
+    },
+    {
+      q: 'Socioeconomic status (SES)',
+      isConf: true,
+      backShort: '⚠ Potential confound',
+      backTag: 'Causes both IV and DV independently',
+      body: 'Higher SES gives people more time, money, and access to exercise (gym memberships, safe neighbourhoods, leisure time) AND independently predicts better mental wellbeing through reduced financial stress and better healthcare. Both arrows present — this is a confound that needs to be measured.'
+    },
+  ];
+
+  const flipKeys = ['flip1','flip2','flip3','flip4'];
+
+  return [
+    {
+      title: 'Step 1 — We have a theory and observe the expected correlation',
+      numClass: 'active',
+      body: `
+        <div class="theory-box">
+          <div class="theory-label">Theory</div>
+          <div class="theory-text">Regular exercise causes improved psychological wellbeing.</div>
+          <div class="theory-sub">If true, we expect a positive correlation between exercise frequency and wellbeing scores.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin:14px 0 10px;">
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">We observe this correlation</div>
+            ${drawScatterSVG(exData,'Exercise (hrs/week)','Wellbeing score',0.52,false,280,210)}
+          </div>
+          <div style="flex:1;min-width:180px;font-size:0.86rem;color:var(--text);line-height:1.65;padding-top:22px;">
+            The data support the theory — people who exercise more report better wellbeing.<br><br>
+            But does this <em>prove</em> the theory? We need to ask: could confounds explain this correlation even if exercise has no real effect on wellbeing?
+          </div>
+        </div>
+        <div class="diag-wrap">${makeDiagram('Exercise','Wellbeing','?',false,false,false,false)}</div>
+        <button class="btn-reveal" style="margin-top:10px;" onclick="openStep(1,1)">Check for confounds ↓</button>
+      `
+    },
+    {
+      title: 'Step 2 — Is each variable a confound?',
+      numClass: allFlipped && st.verdictRevealed ? 'done' : '',
+      body: `
+        <p style="font-size:0.88rem;line-height:1.65;margin-bottom:6px;color:var(--text);">For a variable to be a confound, it must independently cause changes in <strong>both</strong> exercise levels (IV) <strong>and</strong> wellbeing (DV).</p>
+        <p style="font-size:0.85rem;color:var(--navy);font-weight:600;margin-bottom:12px;">Start by clicking the cards you think <em>are</em> confounds — then click the ones you think aren't.</p>
+        <div class="flip-row" style="grid-template-columns:1fr 1fr;">
+          ${cards.map((c,i)=>`
+            <div class="flip-card ${st[flipKeys[i]]?'flipped':''}" onclick="flipCard(1,${i+1})" style="height:120px;">
+              <div class="flip-card-inner">
+                <div class="flip-front">
+                  <div class="flip-front-q">${c.q}</div>
+                  <div class="flip-front-hint">Click to reveal</div>
+                </div>
+                <div class="flip-back" style="background:${c.isConf?'var(--red-light)':'var(--navy-light)'};border:1.5px solid ${c.isConf?'var(--red)':'var(--border)'};">
+                  <div class="flip-back-icon">${c.isConf?'⚠':'✓'}</div>
+                  <div style="font-size:0.72rem;font-weight:700;color:var(--muted);margin-bottom:1px;">${c.q}</div>
+                  <div class="flip-back-ans" style="color:${c.isConf?'var(--red)':'var(--navy)'};">${c.backShort}</div>
+                  <div class="flip-back-exp" style="color:var(--muted);">${c.backTag}</div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ${allFlipped ? `
+          <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+            ${cards.map(c=>`
+              <div style="padding:11px 14px;border-radius:8px;font-size:0.85rem;line-height:1.6;background:${c.isConf?'var(--red-light)':'var(--navy-light)'};border:1px solid ${c.isConf?'#f0b8b2':'var(--border)'};">
+                <strong style="color:${c.isConf?'var(--red)':'var(--navy)'};">${c.isConf?'⚠':'✓'} ${c.backShort} — ${c.q}</strong><br>${c.body}
+              </div>
+            `).join('')}
+          </div>
+          ${!st.verdictRevealed ? `<button class="btn-reveal" onclick="revealVerdict2()">What does this mean for the theory? ↓</button>` : ''}
+        ` : `<p class="note">${4-flippedCount} card(s) remaining — flip all four to continue.</p>`}
+      `
+    },
+    {
+      title: 'Step 3 — What this means for the theory',
+      numClass: '',
+      body: `
+        <p style="font-size:0.88rem;line-height:1.65;margin-bottom:14px;color:var(--text);">The diagram shows all four variables. Colour tells you what type of relationship each represents.</p>
+        <div class="diag-wrap">${makeExerciseDiagram()}</div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+
+          <div class="verdict conf">
+            <div class="verdict-title">⚠ SES must be measured and controlled for</div>
+            SES causes both exercise levels AND wellbeing independently. Even if exercise had <em>zero</em> real effect on wellbeing, we would still observe a positive correlation — because SES is driving both upward at the same time. This is the only type of variable that can manufacture a false correlation. It must be measured and statistically accounted for.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:#e0f4f6;border:1px solid #007b8a;font-size:0.87rem;line-height:1.65;">
+            <strong style="color:#007b8a;">✓ A fitness tracker is upstream of the IV — the theory survives</strong><br>
+            A fitness tracker causes more exercise — but the device itself has no direct path to wellbeing. Any wellbeing improvement happens because exercise increased, which is exactly what the theory predicts. Variables that are upstream of the IV (causes of the IV) don't threaten the theory — if anything they support it by showing the IV is the active ingredient.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--navy-light);border:1px solid var(--border);font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--navy);">✓ Sleep is downstream — it may be part of how exercise works</strong><br>
+            Improved sleep quality might be one of the pathways through which exercise improves wellbeing. This is about <em>mechanism</em>, not confounding. It doesn't threaten the theory — it enriches it.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--navy-light);border:1px solid var(--border);font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--navy);">✓ Unhealthy social media use adds noise — it doesn't create bias</strong><br>
+            Unhealthy social media use may reduce wellbeing, but it does not cause people to exercise more or less. With only one arrow (to the DV), it makes wellbeing scores noisier and harder to work with — but it cannot manufacture a false correlation between exercise and wellbeing. It's not a confound.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--gold-light);border:1px solid var(--gold);font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--navy);">💡 "What about people who join a sports club?"</strong><br>
+            Sports club members exercise more socially, and may get additional benefit from the social aspect. This is a question about <em>moderation</em> — does the type of exercise change the size of the effect? That's genuinely interesting, but it doesn't change whether exercise → wellbeing is real. A confound specifically asks: could this variable <em>fake</em> the IV-DV correlation? Joining a sports club doesn't do that.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--red-light);border:1px solid #f0b8b2;font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--red);">🔄 There's another problem we haven't addressed: direction of causation</strong><br>
+            Even if we control for SES and other confounds, our correlation still can't tell us <em>which direction</em> the relationship runs. Does exercise improve wellbeing — or do people who feel well simply exercise more? Both would produce a positive correlation. This is the problem of <strong>reverse causation</strong>, and it's something correlational research fundamentally cannot resolve. To know for sure that exercise <em>causes</em> wellbeing (rather than the other way around), we need a different type of study — one where we can actually <em>manipulate</em> exercise. That's exactly what experiments are designed to do, and it's what we'll cover in the next module.
+          </div>
+
+        </div>
+        <div class="obs-box">
+          <div class="obs-label">The key rule — worth remembering</div>
+          <div class="obs-text" style="font-size:0.88rem;font-weight:500;">A confound must cause changes in BOTH the IV and the DV independently.</div>
+          <div class="obs-sub" style="margin-top:5px;">Variables upstream of the IV, downstream of the IV, or only connected to the DV are all different — and none of them can manufacture a false IV-DV correlation the way a true confound can.</div>
+        </div>
+      `
+    }
+  ];
+}
+
+
+
+// ── SCENARIO 3: SOCIAL MEDIA & DEPRESSION ───────────────────────────────────
+function genSocialMediaData(){
+  function rng(s){let v=s;return()=>{v=(v*9301+49297)%233280;return v/233280;}}
+  const rand=rng(91);
+  const pts=[];
+  for(let i=0;i<22;i++){
+    const x=rand()*80+10;
+    const noise=(rand()-0.5)*2;
+    const y=50+0.47*(x-50)+noise*Math.sqrt(1-0.47*0.47)*30;
+    pts.push({x,y:Math.max(5,Math.min(95,y)),age:9});
+  }
+  return pts;
+}
+
+function renderScenario3() {
+  const st = states[2];
+  const smData = genSocialMediaData();
+  const revealed = st.candRevealed;
+
+  // Order: non-confound, confound, non-confound, confound (confound in bottom-right)
+  const candidates = [
+    {name:'Financial stress', isConf:false,
+     arrow_sm:'\u2717 Financial stress does not directly cause people to use social media more',
+     arrow_dep:'\u2713 Financial stress can independently increase depression',
+     verdict:'Not a confound \u2014 financial stress only points toward depression (one arrow to DV). It adds noise to depression scores, making the relationship harder to detect cleanly, but it cannot manufacture a false correlation between social media use and depression.'},
+    {name:'Loneliness', isConf:true,
+     arrow_sm:'\u2713 Lonely people often turn to social media to seek connection',
+     arrow_dep:'\u2713 Loneliness independently and directly causes depression',
+     verdict:'Potential confound \u2014 causes BOTH. Loneliness could drive both more social media use and higher depression scores independently. Even if social media had no direct effect on depression, we would still see a positive correlation if lonely people score higher on both measures.'},
+    {name:'Reduced sleep', isConf:false,
+     arrow_sm:'\u2717 Reduced sleep is caused BY late-night social media use \u2014 not an independent cause of it',
+     arrow_dep:'\u2713 Poor sleep quality worsens depression symptoms',
+     verdict:'Not a confound \u2014 reduced sleep flows FROM social media use (it\'s downstream of the IV). It might actually be part of the causal mechanism (social media \u2192 disrupted sleep \u2192 depression), which is interesting for understanding HOW the effect works. But it cannot create a false correlation.'},
+    {name:'Pre-existing anxiety', isConf:true,
+     arrow_sm:'\u2713 Anxious people may turn to social media for distraction or reassurance',
+     arrow_dep:'\u2713 Anxiety is a well-established independent cause of depression',
+     verdict:'Potential confound \u2014 causes BOTH. Pre-existing anxiety could independently drive both higher social media use and higher depression scores. This is something a well-designed study would need to measure and account for.'},
+  ];
+
+  return [
+    {
+      title: 'Step 1 \u2014 We observe a relationship',
+      numClass: 'active',
+      body: `
+        <div class="obs-box">
+          <div class="obs-label">What we observe</div>
+          <div class="obs-text">People who spend more time on social media score higher on depression measures.</div>
+          <div class="obs-sub">A meaningful positive correlation \u2014 r \u2248 +.47.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin:14px 0 10px;">
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;">Observed scatterplot</div>
+            ${drawScatterSVG(smData,'Social media (hrs/day)','Depression score',0.47,false,280,210)}
+          </div>
+          <div style="flex:1;min-width:180px;font-size:0.86rem;color:var(--text);line-height:1.65;padding-top:22px;">
+            A journalist reports: "Social media causes depression." A psychologist would ask something different: <strong>could third variables explain this correlation without any real causal link?</strong>
+          </div>
+        </div>
+        <div class="diag-wrap">${makeDiagram('Social media use','Depression score','?',false,false,false,false)}</div>
+        <button class="btn-reveal" style="margin-top:10px;" onclick="openStep(2,1)">Check for potential confounds \u2193</button>
+      `
+    },
+    {
+      title: 'Step 2 \u2014 Which variables might be potential confounds?',
+      numClass: revealed.length===4 ? 'done' : '',
+      body: `
+        <p style="font-size:0.88rem;line-height:1.65;margin-bottom:6px;color:var(--text);">For a variable to be a <strong>potential confound</strong>, it must independently cause changes in <strong>both</strong> social media use <em>and</em> depression scores.</p>
+        <p style="font-size:0.85rem;color:var(--navy);font-weight:600;margin-bottom:12px;">Click the variables you think might be confounds first \u2014 then the ones you don\u2019t think are.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          ${candidates.map((c,i)=>{
+            const rev=revealed.includes(i);
+            return `<div class="cand-card ${rev?'revealed '+(c.isConf?'confound':'not-confound'):''}" onclick="revealCand3(${i})" style="cursor:${rev?'default':'pointer'}">
+              <div class="cand-name">${rev?(c.isConf?'\u26a0 ':'\u2717 '):''}${c.name}</div>
+              ${rev?`<div style="font-size:0.78rem;margin-top:6px;line-height:1.5;">${c.arrow_sm}<br>${c.arrow_dep}</div>`:'<div class="cand-hint" style="font-size:0.78rem;color:var(--muted);margin-top:3px;">Click to reveal</div>'}
+              <div class="cand-verdict">${c.verdict}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        ${revealed.length<4 ? `<p style="font-size:0.82rem;color:var(--muted);">${4-revealed.length} card(s) remaining \u2014 click each to reveal.</p>` : ''}
+      `
+    },
+    {
+      title: 'Step 3 \u2014 What does this mean, and where do we go from here?',
+      numClass: '',
+      body: `
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:4px;">
+
+          <div class="verdict conf">
+            <div class="verdict-title">\u26a0 Loneliness and pre-existing anxiety are potential confounds</div>
+            Both variables independently cause more social media use AND higher depression. Even if social media had no real effect on depression, we would still observe a positive correlation. Any study making claims about this relationship needs to measure and account for these.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--navy-light);border:1px solid var(--border);font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--navy);">\u2717 Reduced sleep and financial stress are not confounds</strong><br>
+            Reduced sleep is downstream of social media use (a potential mechanism, not a confound). Financial stress only points toward depression. Neither can manufacture a false correlation \u2014 but identifying them matters for understanding the full picture.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--gold-light);border:1px solid var(--gold);font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--navy);">\ud83d\udca1 A correlation is the start of the scientific story \u2014 not the end</strong><br>
+            Observing a relationship isn\u2019t enough to draw conclusions. Before making causal claims we need: (1) a plausible <em>mechanism</em> \u2014 how exactly would social media use cause depression? Social comparison? Displacement of healthy activities? Sleep disruption? (2) confounds ruled out or controlled for. (3) the <em>direction</em> of the relationship established. All three remain open questions here.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:var(--red-light);border:1px solid #f0b8b2;font-size:0.87rem;line-height:1.65;">
+            <strong style="color:var(--red);">\ud83d\udd04 Direction of causation: we still don\u2019t know which way the arrow runs</strong><br>
+            Does social media use cause depression \u2014 or do depressed people simply use social media more? This is a genuinely plausible reverse direction: someone becoming more depressed might withdraw from in-person connection, have more unstructured time, and actively seek distraction or social stimulation through their phone. In that case, depression is driving the social media use, not the other way around. Both causal stories produce exactly the same positive correlation in the data. This is <strong>reverse causation</strong>, and correlational research fundamentally cannot resolve it. We need a design that can establish which came first.
+          </div>
+
+          <div style="padding:12px 16px;border-radius:8px;background:#e0f4f6;border:1px solid #007b8a;font-size:0.87rem;line-height:1.65;">
+            <strong style="color:#007b8a;">\ud83d\udd2c Limitations and future directions \u2014 what would we do next?</strong><br>
+            <strong>Limitations of this study:</strong> Correlational design cannot establish causation or direction. Known confounds (loneliness, anxiety) were not measured or controlled for. Self-report data for both variables is prone to bias.<br><br>
+            <strong>Future directions:</strong> An experiment \u2014 randomly assigning participants to reduce social media use \u2014 would establish whether the causal effect is real. A longitudinal design would help establish temporal order. Measuring and controlling for confounds would test whether the correlation survives. Investigating the mechanism (which <em>type</em> of social media use matters, and why) would tell us how to address the problem in practice.
+          </div>
+
+          <div class="obs-box">
+            <div class="obs-label">The scientific method cycle</div>
+            <div class="obs-text" style="font-size:0.88rem;font-weight:500;">Identifying a correlation is one step in a longer process.</div>
+            <div class="obs-sub" style="margin-top:5px;">We\u2019ve observed a relationship \u2192 formed a theory \u2192 identified its limitations \u2192 now we can design better studies to test it more rigorously. Each study generates new questions. This is exactly what experiments, covered in the next module, are designed to address.</div>
+          </div>
+
+        </div>
+      `
+    }
+  ];
+}
+
+
+// ── RENDER ENGINE ────────────────────────────────────────────────────────────
+function getStepDefs() {
+  if(currentSc===0) return renderScenario1();
+  if(currentSc===1) return renderScenario2();
+  return renderScenario3();
+}
+
+function render() {
+  const st = states[currentSc];
+  const defs = getStepDefs();
+  document.getElementById('steps').innerHTML = defs.map((d,i) => `
+    <div class="step ${st.open[i]?'open':''}" id="step-${i}">
+      <div class="step-hdr" onclick="toggleStep(${i})">
+        <div class="step-num ${d.numClass}">${i+1}</div>
+        <div class="step-title">${d.title}</div>
+        <div class="chev">▼</div>
+      </div>
+      <div class="step-body">${d.body}</div>
+    </div>
+  `).join('');
+}
+
+function setScenario(i) {
+  currentSc = i;
+  document.querySelectorAll('.sc-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  render();
+}
+
+function toggleStep(i) {
+  states[currentSc].open[i] = !states[currentSc].open[i];
+  render();
+}
+
+function setPoll(sc, val) {
+  states[sc].poll = val;
+  render();
+}
+
+function openStep(sc, i) {
+  states[sc].open[i] = true;
+  render();
+}
+
+function flipCard(sc, card){
+  if(card===1) states[sc].flip1=true;
+  if(card===2) states[sc].flip2=true;
+  if(card===3) states[sc].flip3=true;
+  if(card===4) states[sc].flip4=true;
+  render();
+}
+
+function revealVerdict1(){
+  states[0].verdictRevealed=true;
+  render();
+}
+
+function revealVerdict2(){
+  states[1].verdictRevealed=true;
+  states[1].open[2]=true;
+  render();
+}
+
+function revealSc1() {
+  states[0].revealed = true;
+  render();
+}
+
+function revealCand2(i) {
+  states[1].revealed = true;
+  render();
+}
+
+function revealAllSc2() {
+  states[1].revealed = true;
+  render();
+}
+
+function revealCand3(i) {
+  if(!states[2].candRevealed.includes(i)) {
+    states[2].candRevealed.push(i);
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
