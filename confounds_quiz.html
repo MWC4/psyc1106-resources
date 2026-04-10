@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identifying Confounds — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+  :root{--navy:#0d2137;--navy-mid:#163352;--navy-light:#e8edf2;--gold:#E8A000;--gold-light:#fff8e6;--green:#1a7a4a;--green-light:#e6f4ed;--red:#c0392b;--red-light:#fdecea;--text:#1a1a1a;--muted:#5a6a7a;--border:#dde3ea;--bg:#f4f6f8;--surface:#ffffff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;display:flex;flex-direction:column;align-items:center;}
+  .top-bar{width:100%;background:var(--navy);padding:18px 32px;display:flex;align-items:center;gap:14px;margin-bottom:32px;}
+  .top-bar .icon{width:38px;height:38px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .top-bar .course-tag{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:2px;}
+  .top-bar h1{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:#fff;line-height:1.2;}
+  .progress-wrap{width:100%;max-width:760px;padding:0 16px;margin-bottom:20px;}
+  .progress-meta{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:7px;font-weight:600;}
+  .progress-bar{width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--gold);border-radius:3px;transition:width 0.5s ease;}
+  .main{width:100%;max-width:760px;padding:0 16px;margin-bottom:16px;}
+  .card-inner{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .card-header{padding:20px 26px 16px;border-bottom:1px solid var(--border);}
+  .q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .q-num{background:var(--navy);color:#fff;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;}
+  .q-context{font-size:0.72rem;color:var(--muted);font-weight:600;background:var(--navy-light);padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.04em;}
+  .plot-context{font-size:0.88rem;color:var(--text);line-height:1.6;margin-bottom:12px;}
+  .plot-area{display:flex;justify-content:center;padding:8px 0 4px;}
+  .axis-labels{display:flex;justify-content:center;gap:20px;font-size:0.78rem;color:var(--muted);font-weight:600;margin-bottom:8px;}
+  .q-ask{font-size:0.85rem;font-weight:700;color:var(--navy);background:var(--gold-light);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 6px 6px 0;}
+  /* Two-step */
+  .two-step{padding:18px 26px 22px;}
+  .step-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:9px;}
+  .opt-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px;}
+  .opt-row .opt{flex:1;min-width:100px;}
+  .opt{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;color:var(--text);font-family:'Source Sans 3',Arial,sans-serif;font-size:0.88rem;line-height:1.4;text-align:left;}
+  .opt:hover:not([disabled]){border-color:var(--navy);background:var(--navy-light);}
+  .opt[disabled]{cursor:default;}
+  .opt.correct{border-color:var(--green);background:var(--green-light);color:var(--green);}
+  .opt.wrong{border-color:var(--red);background:var(--red-light);color:var(--red);opacity:0.8;}
+  .opt.missed{border-color:var(--green);background:var(--green-light);color:var(--green);opacity:0.65;}
+  .opt-dot{width:10px;height:10px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;}
+  .opt.correct .opt-dot,.opt.missed .opt-dot{background:var(--green);border-color:var(--green);}
+  .opt.wrong .opt-dot{background:var(--red);border-color:var(--red);}
+  .divider{height:1px;background:var(--border);margin-bottom:18px;}
+  .feedback{margin:0 26px 22px;padding:14px 16px;border-radius:8px;font-size:0.88rem;line-height:1.65;display:none;}
+  .feedback.correct-fb{background:var(--green-light);border:1px solid #a8d5bc;color:#145a35;}
+  .feedback.wrong-fb{background:var(--red-light);border:1px solid #f0b8b2;color:#922b21;}
+  .fb-title{font-weight:700;font-size:0.9rem;margin-bottom:7px;}
+  .nav{width:100%;max-width:760px;padding:0 16px;display:flex;justify-content:flex-end;}
+  .btn-next{padding:11px 26px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',Arial,sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;display:none;}
+  .btn-next:hover{background:var(--navy-mid);}
+  .score-screen{width:100%;max-width:760px;padding:0 16px;display:none;}
+  .score-inner{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:48px 36px;text-align:center;}
+  .score-inner h2{font-family:'Source Serif 4',serif;font-size:1.6rem;color:var(--navy);margin-bottom:8px;}
+  .score-big{font-size:4rem;font-weight:700;color:var(--gold);margin:20px 0 8px;line-height:1;}
+  .score-sub{color:var(--muted);font-size:0.95rem;margin-bottom:28px;}
+  .btn-restart{padding:11px 28px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',Arial,sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="icon">🔀</div>
+  <div>
+    <div class="course-tag">PSYC1106 · Module 3</div>
+    <h1>Identifying Confounds</h1>
+  </div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-meta"><span id="prog-label">Question 1 of 5</span><span id="prog-score">0 correct</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+</div>
+<div class="main" id="q-card">
+  <div class="card-inner">
+    <div class="card-header">
+      <div class="q-meta"><span class="q-num" id="q-num">Q1</span><span class="q-context" id="q-context"></span></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="q-ask">Is the proposed variable a potential confound? Select the best answer.</div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+</div>
+<div class="nav"><button class="btn-next" id="btn-next" onclick="nextQ()">Next →</button></div>
+<div class="score-screen" id="score-screen">
+  <div class="score-inner">
+    <h2>Practice Complete</h2>
+    <div class="score-big" id="score-big"></div>
+    <div class="score-sub" id="score-sub"></div>
+    <button class="btn-restart" onclick="restart()">Try Again</button>
+  </div>
+</div>
+<script>
+const questions=[{"context": "Health psychology", "text": "Researchers find people who exercise more have lower anxiety scores. They propose that exercise causes reduced anxiety. A colleague suggests 'quality of sleep' as a potential confound. Does sleep quality cause both variables?", "options": ["Yes \u2014 poor sleep could independently cause both less motivation to exercise AND higher anxiety", "Only one direction works \u2014 poor sleep causes anxiety but doesn't really affect whether someone exercises", "Sleep quality is a consequence of exercise, not a cause of it", "Confounds must be directly observable, so subjective sleep quality cannot be a confound"], "correct": 0, "reason": "Poor sleep could reduce motivation and energy for exercise (causing lower exercise) AND independently worsen anxiety symptoms. Both arrows point away from sleep quality \u2014 it causes both variables. This makes it a potential confound that should be measured in any study of exercise and anxiety."}, {"context": "Clinical psychology", "text": "A study finds children who receive more parental praise score higher on self-esteem measures. The researcher claims praise causes self-esteem. Is 'warm parenting style' a potential confound?", "options": ["Yes \u2014 warm parenting could cause parents to give more praise AND independently build children's self-esteem", "No \u2014 warm parenting is part of why praise works, not a separate cause", "No \u2014 self-esteem is entirely determined by the child, not parenting", "Warm parenting is a mediator here, not a confound"], "correct": 0, "reason": "A warm, engaged parenting style could independently cause parents to praise children more often AND independently build self-esteem through emotional responsiveness and support. It causes both variables \u2014 that is the definition of a confound."}, {"context": "Organisational psychology", "text": "A study finds employees who attend more workplace training perform better. The researcher claims training causes performance. Is 'employee motivation' a potential confound?", "options": ["Yes \u2014 motivated employees are more likely to attend training AND more likely to perform better regardless of training", "No \u2014 motivation only affects performance, not whether someone attends training", "No \u2014 training directly causes motivation, so motivation is a result not a cause", "Motivation is too vague a construct to act as a confound"], "correct": 0, "reason": "Highly motivated employees are more likely to seek training opportunities (causing training attendance) AND more likely to put in effort and perform better at work (causing better performance). Motivation causes both \u2014 it is a potential confound."}, {"context": "Developmental psychology", "text": "Researchers observe that toddlers with larger vocabularies also have better fine motor skills. Is age/developmental stage a confound in this relationship?", "options": ["Yes \u2014 as children age, both vocabulary and fine motor skills develop independently, producing a correlation between them", "No \u2014 vocabulary development causes fine motor improvement through cognitive practice", "No \u2014 fine motor skills and vocabulary develop through different brain pathways so they cannot be related", "Age is a control variable, not a confound"], "correct": 0, "reason": "As children age, both vocabulary and fine motor skills naturally develop \u2014 age causes both. The correlation between vocabulary and motor skills in toddlers likely reflects shared developmental progress driven by age, not a direct causal link between the two abilities."}, {"context": "Educational psychology", "text": "Students who take more handwritten notes score higher on exams. A researcher says note-taking causes better exam performance. Could 'lecture attendance' be a confound?", "options": ["Yes \u2014 attending more lectures creates more opportunities to take notes AND exposes students to more content, improving exam scores", "No \u2014 students who take notes will attend lectures regardless, so attendance is caused by note-taking", "No \u2014 the quality of notes matters more than attendance, which is a different variable", "Attendance is a moderator, not a confound"], "correct": 0, "reason": "Students who attend more lectures have more opportunities to take notes (causing higher note volume) AND benefit from hearing more course content (causing better exam scores). Attendance causes both variables \u2014 it is a potential confound."}];
+
+let current=0,score=0,answered=false;
+let shuffledOrders=[];
+
+function shuffleQuestion(q, qi){
+  // Deterministic shuffle per question index so it's consistent within a session
+  const order=[0,1,2,3].slice(0,q.options.length);
+  // Fisher-Yates with seeded values based on question index
+  const seed=[3,1,2,0,2,3,1,0,1,2][qi%10];
+  for(let i=order.length-1;i>0;i--){
+    const j=(i*7+seed+qi*3)%( i+1);
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  return order;
+}
+
+function render(){
+  const q=questions[current];
+  shuffledOrders[current]=shuffledOrders[current]||shuffleQuestion(q,current);
+  const order=shuffledOrders[current];
+  document.getElementById('q-num').textContent=`Q${current+1}`;
+  document.getElementById('q-context').textContent=q.context;
+  document.getElementById('q-text').textContent=q.text;
+  document.getElementById('prog').style.width=`${(current/questions.length)*100}%`;
+  document.getElementById('prog-label').textContent=`Question ${current+1} of ${questions.length}`;
+  document.getElementById('prog-score').textContent=`${score} correct`;
+  document.getElementById('options').innerHTML=order.map((origIdx,displayPos)=>
+    `<button class="opt" onclick="select(${displayPos})" id="opt-${displayPos}"><span class="opt-letter">${'ABCD'[displayPos]}</span><span>${q.options[origIdx]}</span></button>`
+  ).join('');
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  answered=false;
+}
+
+function select(displayPos){
+  if(answered)return;answered=true;
+  const q=questions[current];
+  const order=shuffledOrders[current];
+  const correctDisplayPos=order.indexOf(q.correct);
+  const ok=displayPos===correctDisplayPos;
+  if(ok)score++;
+  document.querySelectorAll('.opt').forEach((el,idx)=>{
+    el.disabled=true;
+    if(idx===correctDisplayPos)el.classList.add(displayPos===idx?'correct':'missed');
+    else if(idx===displayPos)el.classList.add('wrong');
+  });
+  const fb=document.getElementById('feedback');
+  fb.className=`feedback ${ok?'correct-fb':'wrong-fb'}`;
+  fb.innerHTML=`<div class="fb-title">${ok?'\u2713 Correct':'\u2717 Not quite'}</div><div>${q.reason}</div>`;
+  fb.style.display='block';
+  const btn=document.getElementById('btn-next');btn.style.display='block';
+  btn.textContent=current<questions.length-1?'Next \u2192':'See Results';
+  document.getElementById('prog-score').textContent=`${score} correct`;
+}
+
+function nextQ(){current++;if(current>=questions.length)showScore();else render();}
+function showScore(){
+  document.getElementById('q-card').style.display='none';document.querySelector('.nav').style.display='none';
+  document.getElementById('prog').style.width='100%';document.getElementById('score-screen').style.display='block';
+  document.getElementById('score-big').textContent=`${score}/${questions.length}`;
+  document.getElementById('score-sub').textContent=['Keep reviewing — focus on whether the third variable causes BOTH!','Getting there!','Good effort!','Strong work!','Perfect!'][score];
+}
+function restart(){
+  current=0;score=0;shuffledOrders=[];
+  document.getElementById('q-card').style.display='block';
+  document.querySelector('.nav').style.display='flex';
+  document.getElementById('score-screen').style.display='none';
+  render();
+}
+render();
+
+</script>
+</body>
+</html>

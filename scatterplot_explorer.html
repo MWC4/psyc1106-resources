@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scatterplot Explorer — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+  :root {
+    --navy:#0d2137; --navy-mid:#163352; --navy-light:#e8edf2;
+    --gold:#E8A000; --gold-light:#fff8e6;
+    --green:#1a7a4a; --green-light:#e6f4ed;
+    --red:#c0392b; --red-light:#fdecea;
+    --blue:#1a5fa8; --blue-light:#e8f0fb;
+    --text:#1a1a1a; --muted:#5a6a7a; --border:#dde3ea; --bg:#f4f6f8; --surface:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;display:flex;flex-direction:column;align-items:center;}
+  .top-bar{width:100%;background:var(--navy);padding:18px 32px;display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+  .top-bar .icon{width:38px;height:38px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .top-bar .course-tag{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:2px;}
+  .top-bar h1{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:#fff;line-height:1.2;}
+
+  .tabs{display:flex;gap:0;width:100%;max-width:900px;padding:0 16px;margin-bottom:20px;}
+  .tab{flex:1;padding:11px 8px;background:var(--surface);border:1px solid var(--border);font-family:'Source Sans 3',Arial,sans-serif;font-size:0.85rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s;text-align:center;}
+  .tab:first-child{border-radius:8px 0 0 8px;}
+  .tab:last-child{border-radius:0 8px 8px 0;}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .tab:not(:last-child){border-right:none;}
+
+  .panel{width:100%;max-width:900px;padding:0 16px;display:none;}
+  .panel.active{display:block;}
+
+  /* Plot grid */
+  .plot-grid{display:grid;gap:16px;margin-bottom:20px;}
+  .plot-grid.cols2{grid-template-columns:1fr 1fr;}
+  .plot-grid.cols3{grid-template-columns:1fr 1fr 1fr;}
+
+  .plot-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:18px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .plot-title{font-size:0.9rem;font-weight:700;color:var(--navy);text-align:center;}
+  canvas{border-radius:4px;}
+  .plot-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+  .ptag{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+  .ptag-pos{background:#d4edda;color:#155724;}
+  .ptag-neg{background:var(--red-light);color:var(--red);}
+  .ptag-none{background:var(--navy-light);color:var(--muted);}
+  .ptag-strong{background:var(--blue-light);color:var(--blue);}
+  .ptag-weak{background:#fff3cd;color:#856404;}
+  .plot-desc{font-size:0.82rem;color:var(--muted);text-align:center;line-height:1.5;max-width:240px;}
+
+  /* Key insight box */
+  .insight{background:var(--gold-light);border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:0 10px 10px 0;padding:14px 18px;margin-bottom:16px;}
+  .insight-title{font-weight:700;font-size:0.9rem;color:var(--navy);margin-bottom:4px;}
+  .insight p{font-size:0.87rem;color:#5a4a00;line-height:1.6;}
+
+  .warn{background:var(--red-light);border:1px solid #f0b8b2;border-left:4px solid var(--red);border-radius:0 10px 10px 0;padding:14px 18px;margin-bottom:16px;}
+  .warn-title{font-weight:700;font-size:0.9rem;color:var(--red);margin-bottom:4px;}
+  .warn p{font-size:0.87rem;color:#7a1a10;line-height:1.6;}
+
+  .section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:12px;}
+
+  @media(max-width:600px){
+    .plot-grid.cols3{grid-template-columns:1fr 1fr;}
+    .plot-grid.cols2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="icon">📈</div>
+  <div>
+    <div class="course-tag">PSYC1106 · Module 3</div>
+    <h1>Scatterplot Explorer</h1>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('direction')">1 · Direction</button>
+  <button class="tab" onclick="showTab('strength')">2 · Strength</button>
+  <button class="tab" onclick="showTab('buster')">3 · Misconception Buster</button>
+</div>
+
+<!-- DIRECTION TAB -->
+<div class="panel active" id="tab-direction">
+  <div class="insight">
+    <div class="insight-title">Direction = slope of the line of best fit</div>
+    <p>If the line slopes <strong>up</strong> from left to right → <strong>positive</strong> correlation. If it slopes <strong>down</strong> → <strong>negative</strong> correlation. If it's flat → <strong>no</strong> correlation.</p>
+  </div>
+  <div class="plot-grid cols3" id="dir-grid"></div>
+</div>
+
+<!-- STRENGTH TAB -->
+<div class="panel" id="tab-strength">
+  <div class="insight">
+    <div class="insight-title">Strength = distance of points from the line of best fit</div>
+    <p>Points <strong>close</strong> to the line → strong correlation (we can predict one score accurately from the other). Points <strong>far</strong> from the line → weak correlation (predictions are unreliable).</p>
+  </div>
+  <div class="plot-grid cols2" id="str-grid"></div>
+</div>
+
+<!-- MISCONCEPTION BUSTER TAB -->
+<div class="panel" id="tab-buster">
+  <div class="warn">
+    <div class="warn-title">⚠ Common misconception: steep slope = strong correlation</div>
+    <p>The slope tells you the <em>direction</em>. The distance of points from the line tells you the <em>strength</em>. A steep slope can go with a weak correlation. A gentle slope can go with a strong correlation.</p>
+  </div>
+  <div class="section-label">Compare these four scatterplots:</div>
+  <div class="plot-grid cols2" id="bust-grid"></div>
+</div>
+
+<script>
+// Seeded RNG
+function seededRNG(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280;};}
+
+// Generate points with given correlation r, slope, and seed
+function genPoints(n, r, seed, slopeStretch=1){
+  const rng=seededRNG(seed);
+  const pts=[];
+  for(let i=0;i<n;i++){
+    const x=rng()*80+10;
+    const noise=(rng()-0.5)*2;
+    const strengthFactor=Math.sqrt(1-r*r);
+    const y=50+r*(x-50)*slopeStretch+noise*strengthFactor*30;
+    pts.push({x,y:Math.max(5,Math.min(95,y))});
+  }
+  return pts;
+}
+
+// Calculate line of best fit
+function lobf(pts){
+  const n=pts.length;
+  const sx=pts.reduce((a,p)=>a+p.x,0);
+  const sy=pts.reduce((a,p)=>a+p.y,0);
+  const sxy=pts.reduce((a,p)=>a+p.x*p.y,0);
+  const sx2=pts.reduce((a,p)=>a+p.x*p.x,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx);
+  const b=(sy-m*sx)/n;
+  return{m,b};
+}
+
+// Draw scatterplot onto canvas
+function drawScatter(canvas, pts, lineColor, showLobf=true){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const pad=24;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#f9fafb';
+  ctx.fillRect(0,0,W,H);
+
+  // Axes
+  ctx.strokeStyle='#cdd5e0';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+
+  // Convert data coords (0-100) to canvas coords
+  const cx=x=>pad+(x/100)*(W-2*pad);
+  const cy=y=>(H-pad)-((y/100)*(H-2*pad));
+
+  // Points
+  pts.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(cx(p.x),cy(p.y),4.5,0,Math.PI*2);
+    ctx.fillStyle=lineColor+'bb';
+    ctx.fill();
+    ctx.strokeStyle=lineColor;
+    ctx.lineWidth=1;
+    ctx.stroke();
+  });
+
+  // Line of best fit
+  if(showLobf){
+    const{m,b}=lobf(pts);
+    const x1=0, y1=m*x1+b;
+    const x2=100, y2=m*x2+b;
+    ctx.beginPath();
+    ctx.moveTo(cx(x1),cy(y1));
+    ctx.lineTo(cx(x2),cy(y2));
+    ctx.strokeStyle=lineColor;
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+  }
+}
+
+function makeCard(title, pts, lineColor, tags, desc){
+  const card=document.createElement('div');
+  card.className='plot-card';
+  const t=document.createElement('div');
+  t.className='plot-title';t.textContent=title;
+  const canvas=document.createElement('canvas');
+  canvas.width=220;canvas.height=200;
+  drawScatter(canvas,pts,lineColor);
+  const tagDiv=document.createElement('div');
+  tagDiv.className='plot-tags';
+  tags.forEach(([label,cls])=>{
+    const s=document.createElement('span');
+    s.className='ptag '+cls;s.textContent=label;
+    tagDiv.appendChild(s);
+  });
+  const d=document.createElement('div');
+  d.className='plot-desc';d.textContent=desc;
+  card.append(t,canvas,tagDiv,d);
+  return card;
+}
+
+// Direction examples
+const dirExamples=[
+  {title:'Positive Correlation',pts:genPoints(20,0.88,42),color:'#1a5fa8',
+   tags:[['↗ Positive direction','ptag-pos']],
+   desc:'As anxiety increases, sleep onset latency increases. Line slopes up — positive correlation.'},
+  {title:'No Correlation',pts:genPoints(20,0,17),color:'#888',
+   tags:[['→ No direction','ptag-none']],
+   desc:'Knowing someone\'s height tells us nothing about their IQ. Line is flat — no correlation.'},
+  {title:'Negative Correlation',pts:genPoints(20,-0.86,73),color:'#c0392b',
+   tags:[['↘ Negative direction','ptag-neg']],
+   desc:'As caffeine increases, reaction time decreases. Line slopes down — negative correlation.'},
+];
+
+// Strength examples
+const strExamples=[
+  {title:'Strong Correlation',pts:genPoints(20,0.92,33),color:'#1a5fa8',
+   tags:[['Strong','ptag-strong'],['Points close to line','ptag-pos']],
+   desc:'Points are tight around the line. Knowing one score, we can predict the other accurately.'},
+  {title:'Weak Correlation',pts:genPoints(20,0.28,88),color:'#1a5fa8',
+   tags:[['Weak','ptag-weak'],['Points far from line','ptag-neg']],
+   desc:'Points are scattered far from the line. Knowing one score helps only a little.'},
+];
+
+// Misconception buster — vary slope AND strength independently
+function genSteepStrong(seed){
+  // Steep slope + strong (points close to steep line)
+  return genPoints(20,0.92,seed,2.0);
+}
+function genSteepWeak(seed){
+  // Steep apparent slope + weak (we artificially create this)
+  const rng=seededRNG(seed);
+  const pts=[];
+  for(let i=0;i<20;i++){
+    const x=rng()*60+20;
+    const noise=(rng()-0.5)*2;
+    // Steep trend but very noisy
+    const y=50+(x-50)*1.8+noise*38;
+    pts.push({x,y:Math.max(5,Math.min(95,y))});
+  }
+  return pts;
+}
+function genGentleStrong(seed){
+  // Gentle slope + strong (points close to gentle line)
+  return genPoints(20,0.92,seed,0.4);
+}
+function genGentleWeak(seed){
+  // Gentle slope + weak
+  return genPoints(20,0.25,seed,0.4);
+}
+
+const bustExamples=[
+  {title:'Steep slope — WEAK correlation',pts:genSteepWeak(55),color:'#c0392b',
+   tags:[['Steep slope','ptag-neg'],['Weak — points FAR from line','ptag-weak']],
+   desc:'The slope is steep, but points are scattered widely. This is a WEAK correlation despite the steep line.'},
+  {title:'Steep slope — STRONG correlation',pts:genSteepStrong(12),color:'#1a5fa8',
+   tags:[['Steep slope','ptag-pos'],['Strong — points CLOSE to line','ptag-strong']],
+   desc:'Steep slope AND points tight around the line. Strong correlation.'},
+  {title:'Gentle slope — WEAK correlation',pts:genGentleWeak(99),color:'#c0392b',
+   tags:[['Gentle slope','ptag-neg'],['Weak — points FAR from line','ptag-weak']],
+   desc:'Gentle slope and points scattered widely. Weak correlation.'},
+  {title:'Gentle slope — STRONG correlation',pts:genGentleStrong(66),color:'#1a5fa8',
+   tags:[['Gentle slope','ptag-pos'],['Strong — points CLOSE to line','ptag-strong']],
+   desc:'Gentle slope but points stay close to the line. Strong correlation — slope does not determine strength.'},
+];
+
+const dirGrid=document.getElementById('dir-grid');
+dirExamples.forEach(e=>dirGrid.appendChild(makeCard(e.title,e.pts,e.color,e.tags,e.desc)));
+
+const strGrid=document.getElementById('str-grid');
+strExamples.forEach(e=>strGrid.appendChild(makeCard(e.title,e.pts,e.color,e.tags,e.desc)));
+
+const bustGrid=document.getElementById('bust-grid');
+bustExamples.forEach(e=>bustGrid.appendChild(makeCard(e.title,e.pts,e.color,e.tags,e.desc)));
+
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['direction','strength','buster'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+</script>
+</body>
+</html>

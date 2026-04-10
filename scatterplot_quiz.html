@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Scatterplots — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+  :root{--navy:#0d2137;--navy-mid:#163352;--navy-light:#e8edf2;--gold:#E8A000;--gold-light:#fff8e6;--green:#1a7a4a;--green-light:#e6f4ed;--red:#c0392b;--red-light:#fdecea;--text:#1a1a1a;--muted:#5a6a7a;--border:#dde3ea;--bg:#f4f6f8;--surface:#ffffff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;display:flex;flex-direction:column;align-items:center;}
+  .top-bar{width:100%;background:var(--navy);padding:18px 32px;display:flex;align-items:center;gap:14px;margin-bottom:32px;}
+  .top-bar .icon{width:38px;height:38px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .top-bar .course-tag{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:2px;}
+  .top-bar h1{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:#fff;line-height:1.2;}
+  .progress-wrap{width:100%;max-width:760px;padding:0 16px;margin-bottom:20px;}
+  .progress-meta{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:7px;font-weight:600;}
+  .progress-bar{width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--gold);border-radius:3px;transition:width 0.5s ease;}
+  .main{width:100%;max-width:760px;padding:0 16px;margin-bottom:16px;}
+  .card-inner{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .card-header{padding:20px 26px 16px;border-bottom:1px solid var(--border);}
+  .q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .q-num{background:var(--navy);color:#fff;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;}
+  .q-context{font-size:0.72rem;color:var(--muted);font-weight:600;background:var(--navy-light);padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.04em;}
+  .plot-context{font-size:0.88rem;color:var(--text);line-height:1.6;margin-bottom:12px;}
+  .plot-area{display:flex;justify-content:center;padding:8px 0 4px;}
+  .axis-labels{display:flex;justify-content:center;gap:20px;font-size:0.78rem;color:var(--muted);font-weight:600;margin-bottom:8px;}
+  .q-ask{font-size:0.85rem;font-weight:700;color:var(--navy);background:var(--gold-light);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 6px 6px 0;}
+  /* Two-step */
+  .two-step{padding:18px 26px 22px;}
+  .step-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:9px;}
+  .opt-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px;}
+  .opt-row .opt{flex:1;min-width:100px;}
+  .opt{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;color:var(--text);font-family:'Source Sans 3',Arial,sans-serif;font-size:0.88rem;line-height:1.4;text-align:left;}
+  .opt:hover:not([disabled]){border-color:var(--navy);background:var(--navy-light);}
+  .opt[disabled]{cursor:default;}
+  .opt.correct{border-color:var(--green);background:var(--green-light);color:var(--green);}
+  .opt.wrong{border-color:var(--red);background:var(--red-light);color:var(--red);opacity:0.8;}
+  .opt.missed{border-color:var(--green);background:var(--green-light);color:var(--green);opacity:0.65;}
+  .opt-dot{width:10px;height:10px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;}
+  .opt.correct .opt-dot,.opt.missed .opt-dot{background:var(--green);border-color:var(--green);}
+  .opt.wrong .opt-dot{background:var(--red);border-color:var(--red);}
+  .divider{height:1px;background:var(--border);margin-bottom:18px;}
+  .feedback{margin:0 26px 22px;padding:14px 16px;border-radius:8px;font-size:0.88rem;line-height:1.65;display:none;}
+  .feedback.correct-fb{background:var(--green-light);border:1px solid #a8d5bc;color:#145a35;}
+  .feedback.wrong-fb{background:var(--red-light);border:1px solid #f0b8b2;color:#922b21;}
+  .fb-title{font-weight:700;font-size:0.9rem;margin-bottom:7px;}
+  .nav{width:100%;max-width:760px;padding:0 16px;display:flex;justify-content:flex-end;}
+  .btn-next{padding:11px 26px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',Arial,sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;display:none;}
+  .btn-next:hover{background:var(--navy-mid);}
+  .score-screen{width:100%;max-width:760px;padding:0 16px;display:none;}
+  .score-inner{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:48px 36px;text-align:center;}
+  .score-inner h2{font-family:'Source Serif 4',serif;font-size:1.6rem;color:var(--navy);margin-bottom:8px;}
+  .score-big{font-size:4rem;font-weight:700;color:var(--gold);margin:20px 0 8px;line-height:1;}
+  .score-sub{color:var(--muted);font-size:0.95rem;margin-bottom:28px;}
+  .btn-restart{padding:11px 28px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',Arial,sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="icon">📊</div>
+  <div>
+    <div class="course-tag">PSYC1106 · Module 3</div>
+    <h1>Reading Scatterplots</h1>
+  </div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-meta"><span id="prog-label">Question 1 of 5</span><span id="prog-score">0 correct</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+</div>
+<div class="main" id="q-card">
+  <div class="card-inner">
+    <div class="card-header">
+      <div class="q-meta"><span class="q-num" id="q-num">Q1</span><span class="q-context" id="q-context"></span></div>
+      <div class="plot-context" id="plot-context"></div>
+      <div class="plot-area"><canvas id="plot" width="320" height="280"></canvas></div>
+      <div class="axis-labels" id="axis-labels"></div>
+      <div class="q-ask">Identify the direction and strength of this correlation.</div>
+    </div>
+    <div class="two-step">
+      <div class="step-label">Step 1 — Direction?</div>
+      <div class="opt-row" id="step1-opts"></div>
+      <div class="divider"></div>
+      <div class="step-label">Step 2 — Strength?</div>
+      <div class="opt-row" id="step2-opts"></div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+</div>
+<div class="nav"><button class="btn-next" id="btn-next" onclick="nextQ()">Next →</button></div>
+<div class="score-screen" id="score-screen">
+  <div class="score-inner">
+    <h2>Practice Complete</h2>
+    <div class="score-big" id="score-big"></div>
+    <div class="score-sub" id="score-sub"></div>
+    <button class="btn-restart" onclick="restart()">Try Again</button>
+  </div>
+</div>
+
+<script>
+function seededRNG(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280;};}
+function genPoints(n,r,seed,slope=1){
+  const rng=seededRNG(seed);const pts=[];
+  for(let i=0;i<n;i++){
+    const x=rng()*80+10;
+    const noise=(rng()-0.5)*2;
+    const y=50+r*(x-50)*slope+noise*Math.sqrt(1-r*r)*30;
+    pts.push({x,y:Math.max(3,Math.min(97,y))});
+  }
+  return pts;
+}
+function lobf(pts){
+  const n=pts.length,sx=pts.reduce((a,p)=>a+p.x,0),sy=pts.reduce((a,p)=>a+p.y,0);
+  const sxy=pts.reduce((a,p)=>a+p.x*p.y,0),sx2=pts.reduce((a,p)=>a+p.x*p.x,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;
+  return{m,b};
+}
+function drawPlot(pts,xLabel,yLabel,col){
+  const canvas=document.getElementById('plot');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,pad=36;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f9fafb';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#cdd5e0';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+  ctx.fillStyle='#8899aa';ctx.font='11px Source Sans 3,Arial,sans-serif';
+  ctx.textAlign='center';ctx.fillText(xLabel,W/2,H-6);
+  ctx.save();ctx.translate(10,H/2);ctx.rotate(-Math.PI/2);ctx.fillText(yLabel,0,0);ctx.restore();
+  const cx=x=>pad+(x/100)*(W-2*pad),cy=y=>(H-pad)-((y/100)*(H-2*pad));
+  pts.forEach(p=>{
+    ctx.beginPath();ctx.arc(cx(p.x),cy(p.y),5,0,Math.PI*2);
+    ctx.fillStyle=col+'99';ctx.fill();
+    ctx.strokeStyle=col;ctx.lineWidth=1;ctx.stroke();
+  });
+  const{m,b}=lobf(pts);
+  ctx.beginPath();ctx.moveTo(cx(0),cy(b));ctx.lineTo(cx(100),cy(m*100+b));
+  ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.stroke();
+}
+
+const questions=[
+  {context:"Health psychology",
+   desc:"A researcher measures anxiety scores and sleep onset latency (minutes to fall asleep) in 25 adults.",
+   xLabel:"Anxiety score",yLabel:"Sleep onset (mins)",
+   r:0.88,seed:33,slope:1,color:'#1a5fa8',
+   dir:'positive',str:'strong',
+   reason:"The line slopes upward (positive direction) and points are close to the line (strong). As anxiety increases, sleep onset latency increases — higher anxiety is associated with longer time to fall asleep. r ≈ .88 — well above the .3 meaningful threshold."},
+  {context:"Sport psychology",
+   desc:"A researcher examines whether hours of weekly training predicts competition anxiety scores in elite athletes.",
+   xLabel:"Training hours/week",yLabel:"Competition anxiety",
+   r:-0.82,seed:77,slope:1,color:'#c0392b',
+   dir:'negative',str:'strong',
+   reason:"The line slopes downward (negative direction) and points are close to the line (strong). More training is associated with less competition anxiety. Negative, strong correlation — experienced athletes who train more appear more confident."},
+  {context:"Organisational psychology",
+   desc:"A sample of 25 employees' age (years) and self-reported job satisfaction scores are plotted.",
+   xLabel:"Age (years)",yLabel:"Job satisfaction",
+   r:0.28,seed:44,slope:1,color:'#1a5fa8',
+   dir:'positive',str:'weak',
+   reason:"The line slopes slightly upward (positive direction) but points are scattered widely (weak). There is a slight tendency for older employees to report higher satisfaction, but the relationship is weak — below the .3 meaningful threshold. Knowing someone's age tells us very little about their satisfaction."},
+  {context:"Clinical psychology",
+   desc:"Researchers plot number of therapy sessions attended against depression scores at discharge in 25 patients.",
+   xLabel:"Sessions attended",yLabel:"Depression score at discharge",
+   r:-0.35,seed:19,slope:1,color:'#c0392b',
+   dir:'negative',str:'weak',
+   reason:"The line slopes downward (negative direction) but points are spread fairly widely (weak-moderate). More sessions are associated with lower depression scores at discharge, but the relationship is not tight — other factors clearly influence outcome. r ≈ -.35 — just meets the meaningful threshold."},
+  {context:"Developmental psychology",
+   desc:"Height (cm) and weekly screen time (hours) are measured in a sample of 25 primary school children.",
+   xLabel:"Height (cm)",yLabel:"Screen time (hrs/week)",
+   r:0.05,seed:62,slope:1,color:'#888888',
+   dir:'none',str:'weak',
+   reason:"The line is essentially flat (no direction) and points are scattered everywhere (no relationship). Height and screen time are not related — knowing a child's height tells us nothing about how much screen time they have. r ≈ 0. This is what no correlation looks like on a scatterplot."},
+];
+
+let current=0,score=0,step1done=false,step1correct=false;
+function render(){
+  const q=questions[current];
+  document.getElementById('q-num').textContent=`Q${current+1}`;
+  document.getElementById('q-context').textContent=q.context;
+  document.getElementById('plot-context').textContent=q.desc;
+  document.getElementById('axis-labels').innerHTML=`<span>X: ${q.xLabel}</span><span>Y: ${q.yLabel}</span>`;
+  document.getElementById('prog').style.width=`${(current/questions.length)*100}%`;
+  document.getElementById('prog-label').textContent=`Question ${current+1} of ${questions.length}`;
+  document.getElementById('prog-score').textContent=`${score} correct`;
+  const pts=genPoints(25,q.r,q.seed,q.slope||1);
+  drawPlot(pts,q.xLabel,q.yLabel,q.color);
+  document.getElementById('step1-opts').innerHTML=['Positive ↗','Negative ↘','No correlation →'].map((o,i)=>{
+    const val=['positive','negative','none'][i];
+    return`<button class="opt" onclick="selectStep1('${val}')" id="s1-${val}"><span class="opt-dot"></span>${o}</button>`;
+  }).join('');
+  document.getElementById('step2-opts').innerHTML=['Strong','Weak'].map((o,i)=>{
+    const val=['strong','weak'][i];
+    return`<button class="opt" onclick="selectStep2('${val}')" id="s2-${val}" disabled><span class="opt-dot"></span>${o}</button>`;
+  }).join('');
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  step1done=false;step1correct=false;
+}
+function selectStep1(val){
+  if(step1done)return;step1done=true;
+  const q=questions[current];step1correct=val===q.dir;
+  ['positive','negative','none'].forEach(v=>{
+    const el=document.getElementById('s1-'+v);el.disabled=true;
+    if(v===q.dir)el.classList.add(val===v?'correct':'missed');
+    else if(v===val)el.classList.add('wrong');
+  });
+  ['strong','weak'].forEach(v=>{document.getElementById('s2-'+v).disabled=false;});
+}
+function selectStep2(val){
+  const q=questions[current];const ok=val===q.str;const full=step1correct&&ok;if(full)score++;
+  ['strong','weak'].forEach(v=>{
+    const el=document.getElementById('s2-'+v);el.disabled=true;
+    if(v===q.str)el.classList.add(val===v?'correct':'missed');
+    else if(v===val)el.classList.add('wrong');
+  });
+  const fb=document.getElementById('feedback');
+  fb.className=`feedback ${full?'correct-fb':'wrong-fb'}`;
+  fb.innerHTML=`<div class="fb-title">${full?'✓ Correct!':'✗ Not quite — here\'s why:'}</div><div>${q.reason}</div>`;
+  fb.style.display='block';
+  const btn=document.getElementById('btn-next');btn.style.display='block';
+  btn.textContent=current<questions.length-1?'Next →':'See Results';
+  document.getElementById('prog-score').textContent=`${score} correct`;
+}
+function nextQ(){current++;if(current>=questions.length)showScore();else render();}
+function showScore(){
+  document.getElementById('q-card').style.display='none';document.querySelector('.nav').style.display='none';
+  document.getElementById('prog').style.width='100%';document.getElementById('score-screen').style.display='block';
+  document.getElementById('score-big').textContent=`${score}/${questions.length}`;
+  document.getElementById('score-sub').textContent=['Keep practising — remember: slope=direction, distance=strength!','Getting there!','Good effort!','Strong work!','Perfect — all five!'][score];
+}
+function restart(){current=0;score=0;document.getElementById('q-card').style.display='block';document.querySelector('.nav').style.display='flex';document.getElementById('score-screen').style.display='none';render();}
+render();
+</script>
+</body>
+</html>

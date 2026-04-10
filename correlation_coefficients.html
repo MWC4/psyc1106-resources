@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correlation Coefficients — PSYC1106</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+  :root {
+    --navy:#0d2137; --navy-mid:#163352; --navy-light:#e8edf2;
+    --gold:#E8A000; --gold-light:#fff8e6;
+    --green:#1a7a4a; --green-light:#e6f4ed;
+    --red:#c0392b; --red-light:#fdecea;
+    --blue:#1a5fa8; --blue-light:#e8f0fb;
+    --text:#1a1a1a; --muted:#5a6a7a; --border:#dde3ea; --bg:#f4f6f8; --surface:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Source Sans 3',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;display:flex;flex-direction:column;align-items:center;}
+  .top-bar{width:100%;background:var(--navy);padding:18px 32px;display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+  .top-bar .icon{width:38px;height:38px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .top-bar .course-tag{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:2px;}
+  .top-bar h1{font-family:'Source Serif 4',serif;font-size:1.3rem;font-weight:600;color:#fff;line-height:1.2;}
+
+  .main{width:100%;max-width:820px;padding:0 16px;}
+
+  .card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:20px;}
+
+  /* Slider section */
+  .r-display{text-align:center;margin-bottom:20px;}
+  .r-value{font-family:'Source Serif 4',serif;font-size:3.5rem;font-weight:600;line-height:1;margin-bottom:8px;}
+  .r-labels{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .r-label{padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:700;}
+  .label-dir-pos{background:#d4edda;color:#155724;}
+  .label-dir-neg{background:var(--red-light);color:var(--red);}
+  .label-dir-none{background:var(--navy-light);color:var(--muted);}
+  .label-str{background:var(--blue-light);color:var(--blue);}
+  .label-meaningful{background:var(--gold-light);color:#8a6000;}
+  .label-not-meaningful{background:var(--navy-light);color:var(--muted);}
+
+  .slider-wrap{padding:0 8px;margin-bottom:8px;}
+  input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--border);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--navy);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+  .slider-ends{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);font-weight:600;padding:0 4px;}
+
+  .plot-wrap{display:flex;justify-content:center;margin-bottom:20px;}
+
+  /* Preset buttons */
+  .presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:16px;}
+  .preset-btn{padding:9px 8px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font-family:'Source Sans 3',Arial,sans-serif;font-size:0.82rem;font-weight:600;color:var(--navy);cursor:pointer;transition:all 0.15s;text-align:center;}
+  .preset-btn:hover{border-color:var(--navy);background:var(--navy-light);}
+  .preset-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  .rule-box{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:12px 16px;font-size:0.87rem;color:#5a4a00;line-height:1.6;}
+  .rule-box strong{color:var(--navy);}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="icon">🔢</div>
+  <div>
+    <div class="course-tag">PSYC1106 · Module 3</div>
+    <h1>Correlation Coefficients</h1>
+  </div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <div class="r-display">
+      <div class="r-value" id="r-val">r = 0.00</div>
+      <div class="r-labels" id="r-labels"></div>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" id="slider" min="-100" max="100" value="0" oninput="update()">
+    </div>
+    <div class="slider-ends"><span>r = −1.0 (strongest negative)</span><span>r = +1.0 (strongest positive)</span></div>
+  </div>
+
+  <div class="card">
+    <div class="plot-wrap">
+      <canvas id="plot" width="340" height="300"></canvas>
+    </div>
+    <div class="rule-box" id="interp"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:10px;">Quick Examples — click to explore</div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="rule-box">
+    <strong>Rule of thumb:</strong> A correlation of <strong>±.3 or greater</strong> is generally considered meaningful in psychology — it suggests a real relationship worth paying attention to. Below ±.3, the relationship may be too weak to be practically useful. Above ±.5 is strong. Above ±.7 is very strong.
+  </div>
+</div>
+
+<script>
+function seededRNG(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280;};}
+
+function genPoints(n,r,seed){
+  const rng=seededRNG(seed);
+  const pts=[];
+  for(let i=0;i<n;i++){
+    const x=rng()*80+10;
+    const noise=(rng()-0.5)*2;
+    const y=50+r*(x-50)+noise*Math.sqrt(1-r*r)*28;
+    pts.push({x,y:Math.max(3,Math.min(97,y))});
+  }
+  return pts;
+}
+
+function lobf(pts){
+  const n=pts.length;
+  const sx=pts.reduce((a,p)=>a+p.x,0);
+  const sy=pts.reduce((a,p)=>a+p.y,0);
+  const sxy=pts.reduce((a,p)=>a+p.x*p.y,0);
+  const sx2=pts.reduce((a,p)=>a+p.x*p.x,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx);
+  const b=(sy-m*sx)/n;
+  return{m,b};
+}
+
+function drawPlot(r){
+  const canvas=document.getElementById('plot');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const pad=30;
+  ctx.clearRect(0,0,W,H);
+
+  ctx.fillStyle='#f9fafb';
+  ctx.fillRect(0,0,W,H);
+
+  // Axes
+  ctx.strokeStyle='#cdd5e0';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle='#8899aa';
+  ctx.font='11px Source Sans 3, Arial, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('Variable X',W/2,H-6);
+  ctx.save();ctx.translate(10,H/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('Variable Y',0,0);ctx.restore();
+
+  const cx=x=>pad+(x/100)*(W-2*pad);
+  const cy=y=>(H-pad)-((y/100)*(H-2*pad));
+
+  const seed=Math.round(Math.abs(r)*100)*13+7;
+  const pts=genPoints(25,r,seed);
+
+  const col=r>0.05?'#1a5fa8':r<-0.05?'#c0392b':'#888888';
+
+  pts.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(cx(p.x),cy(p.y),5,0,Math.PI*2);
+    ctx.fillStyle=col+'99';
+    ctx.fill();
+    ctx.strokeStyle=col;
+    ctx.lineWidth=1;
+    ctx.stroke();
+  });
+
+  if(Math.abs(r)>0.01){
+    const{m,b}=lobf(pts);
+    ctx.beginPath();
+    ctx.moveTo(cx(0),cy(b));
+    ctx.lineTo(cx(100),cy(m*100+b));
+    ctx.strokeStyle=col;
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+  }
+}
+
+function getStrengthLabel(r){
+  const abs=Math.abs(r);
+  if(abs>=0.7)return'Very strong';
+  if(abs>=0.5)return'Strong';
+  if(abs>=0.3)return'Moderate';
+  if(abs>=0.1)return'Weak';
+  return'Negligible';
+}
+
+function update(){
+  const raw=parseInt(document.getElementById('slider').value);
+  const r=raw/100;
+  const rDisp=r.toFixed(2);
+
+  document.getElementById('r-val').textContent=`r = ${r>=0&&r!==0?'+':''}${rDisp}`;
+
+  // Direction label
+  const labelsDiv=document.getElementById('r-labels');
+  labelsDiv.innerHTML='';
+  const dirLabel=document.createElement('span');
+  if(r>0.05){dirLabel.className='r-label label-dir-pos';dirLabel.textContent='Positive ↗';}
+  else if(r<-0.05){dirLabel.className='r-label label-dir-neg';dirLabel.textContent='Negative ↘';}
+  else{dirLabel.className='r-label label-dir-none';dirLabel.textContent='No direction →';}
+  labelsDiv.appendChild(dirLabel);
+
+  const strLabel=document.createElement('span');
+  strLabel.className='r-label label-str';
+  strLabel.textContent=getStrengthLabel(r);
+  labelsDiv.appendChild(strLabel);
+
+  const abs=Math.abs(r);
+  const mLabel=document.createElement('span');
+  if(abs>=0.3){mLabel.className='r-label label-meaningful';mLabel.textContent='Meaningful (≥ .3)';}
+  else{mLabel.className='r-label label-not-meaningful';mLabel.textContent='Not meaningful (< .3)';}
+  labelsDiv.appendChild(mLabel);
+
+  drawPlot(r);
+
+  // Interpretation
+  const interpDiv=document.getElementById('interp');
+  const abs2=Math.abs(r);
+  let text='';
+  if(abs2<0.1){
+    text='r ≈ 0: Negligible relationship. Knowing someone\'s score on one variable tells us almost nothing about their score on the other.';
+  } else if(abs2<0.3){
+    text=`r = ${rDisp}: Weak relationship. There is a slight tendency for the variables to move ${r>0?'together':'in opposite directions'}, but this is not considered meaningful in most psychological research.`;
+  } else if(abs2<0.5){
+    text=`r = ${rDisp}: Moderate relationship. A meaningful but not strong association. ${r>0?'Higher scores on X tend to go with higher scores on Y.':'Higher scores on X tend to go with lower scores on Y.'} The ±.3 threshold for meaningful is met.`;
+  } else if(abs2<0.7){
+    text=`r = ${rDisp}: Strong relationship. ${r>0?'Higher X is associated with higher Y':'Higher X is associated with lower Y'} quite consistently. We can predict one score from the other with reasonable accuracy.`;
+  } else if(abs2<1.0){
+    text=`r = ${rDisp}: Very strong relationship. Points are close to the line of best fit. ${r>0?'Positive':'Negative'} association is clear. Rare in messy psychological data.`;
+  } else {
+    text=`r = ${r>0?'+':''}${rDisp}: Perfect ${r>0?'positive':'negative'} correlation. Every point lies exactly on the line. This only happens when two variables are mathematically related (e.g., height in cm and height in inches).`;
+  }
+  interpDiv.innerHTML=`<strong>Interpretation:</strong> ${text}`;
+
+  // Update preset buttons
+  document.querySelectorAll('.preset-btn').forEach(btn=>{
+    btn.classList.toggle('active',Math.abs(parseFloat(btn.dataset.r)-r)<0.01);
+  });
+}
+
+const presets=[
+  {r:0,label:'r = 0\nNo correlation'},
+  {r:0.3,label:'r = +.30\nMeaningful threshold'},
+  {r:0.5,label:'r = +.50\nModerate'},
+  {r:0.7,label:'r = +.70\nStrong'},
+  {r:0.9,label:'r = +.90\nVery strong'},
+  {r:-0.3,label:'r = −.30\nNegative meaningful'},
+  {r:-0.6,label:'r = −.60\nNegative strong'},
+  {r:-0.9,label:'r = −.90\nNeg. very strong'},
+];
+
+const presetsDiv=document.getElementById('presets');
+presets.forEach(p=>{
+  const btn=document.createElement('button');
+  btn.className='preset-btn';
+  btn.dataset.r=p.r;
+  btn.textContent=p.label;
+  btn.onclick=()=>{
+    document.getElementById('slider').value=Math.round(p.r*100);
+    update();
+  };
+  presetsDiv.appendChild(btn);
+});
+
+update();
+</script>
+</body>
+</html>
